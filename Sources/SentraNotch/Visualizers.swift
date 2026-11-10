@@ -73,117 +73,144 @@ struct MusicWaves: View {
     }
 }
 
-/// NEW: neon dancers (hip-hop boy, ballerina girl, or both) that dance while music plays.
-/// Glowing light-outline figures with light trails — shapes only, no faces.
+/// NEW: a little disco in the notch — neon outline dancers (boy, girl or both) doing disco moves
+/// under a spinning mirror ball, with sweeping light beams and a flashing dance floor. Shapes only.
 struct Dancers: View {
     var playing: Bool
     var color: Color
     var who: String     // boy | girl | both
 
-    // Skeleton joints in a unit box (x right, y down): head, neck, pelvis, lElbow, lHand, rElbow, rHand, lKnee, lFoot, rKnee, rFoot
-    typealias Pose = [CGPoint]
+    typealias Pose = [CGPoint]   // head, neck, pelvis, lElbow, lHand, rElbow, rHand, lKnee, lFoot, rKnee, rFoot
     private static func P(_ v: [CGFloat]) -> Pose { stride(from: 0, to: v.count, by: 2).map { CGPoint(x: v[$0], y: v[$0 + 1]) } }
     private static func mirror(_ p: Pose) -> Pose {
         let m = p.map { CGPoint(x: 1 - $0.x, y: $0.y) }
         return [m[0], m[1], m[2], m[5], m[6], m[3], m[4], m[9], m[10], m[7], m[8]]
     }
-    static let hipHop: [Pose] = {
-        let a = P([0.50,0.10, 0.50,0.22, 0.50,0.52, 0.36,0.30, 0.27,0.15, 0.66,0.34, 0.75,0.48, 0.42,0.72, 0.37,0.96, 0.60,0.72, 0.67,0.96])
-        let b = P([0.55,0.12, 0.52,0.24, 0.48,0.54, 0.38,0.37, 0.33,0.52, 0.67,0.19, 0.82,0.07, 0.41,0.76, 0.40,0.97, 0.66,0.58, 0.57,0.80])
-        let c = P([0.45,0.19, 0.48,0.31, 0.52,0.61, 0.33,0.41, 0.28,0.57, 0.65,0.40, 0.75,0.29, 0.37,0.77, 0.29,0.97, 0.67,0.79, 0.74,0.97])
-        return [a, b, c, mirror(b)]
+    static let moves: [Pose] = {
+        let pointUp = P([0.50,0.14, 0.50,0.26, 0.52,0.55, 0.40,0.42, 0.47,0.53, 0.66,0.16, 0.80,0.03, 0.44,0.76, 0.40,0.97, 0.62,0.75, 0.66,0.97])
+        let pointDown = P([0.48,0.16, 0.49,0.28, 0.50,0.57, 0.37,0.44, 0.22,0.62, 0.61,0.42, 0.55,0.53, 0.40,0.77, 0.36,0.97, 0.60,0.77, 0.64,0.97])
+        let roll = P([0.53,0.15, 0.52,0.27, 0.57,0.56, 0.41,0.37, 0.53,0.35, 0.65,0.40, 0.54,0.42, 0.47,0.77, 0.43,0.97, 0.65,0.75, 0.69,0.97])
+        return [pointUp, pointDown, roll, mirror(pointUp), mirror(pointDown), mirror(roll)]
     }()
-    static let ballet: [Pose] = {
-        let a = P([0.40,0.12, 0.42,0.22, 0.48,0.48, 0.30,0.22, 0.15,0.14, 0.58,0.12, 0.66,0.02, 0.48,0.72, 0.48,0.98, 0.67,0.45, 0.88,0.35])
-        let b = P([0.50,0.12, 0.50,0.22, 0.50,0.50, 0.42,0.10, 0.48,0.01, 0.58,0.10, 0.52,0.01, 0.48,0.73, 0.49,0.98, 0.58,0.65, 0.50,0.74])
-        let c = P([0.50,0.12, 0.50,0.22, 0.50,0.50, 0.34,0.27, 0.18,0.30, 0.66,0.27, 0.82,0.30, 0.46,0.74, 0.44,0.98, 0.56,0.74, 0.58,0.98])
-        return [a, b, c, mirror(a)]
-    }()
+    static let bpm = 116.0
 
     var body: some View {
         TimelineView(.animation(minimumInterval: 1 / 50, paused: !playing)) { tl in
             let t = playing ? tl.date.timeIntervalSinceReferenceDate : 0
-            Canvas { ctx, size in
-                let list: [Bool] = who == "boy" ? [false] : who == "girl" ? [true] : [false, true]
-                let w = size.width / CGFloat(list.count)
-                for (i, girl) in list.enumerated() {
-                    let h = size.height, fw = min(w, h * 0.9)
-                    let rect = CGRect(x: CGFloat(i) * w + (w - fw) / 2, y: 0, width: fw, height: h)
-                    dancer(ctx, rect, girl: girl, t: t + Double(i) * 0.5)
-                }
-            }
+            Canvas { ctx, size in scene(ctx, size, t) }
         }
     }
 
-    private func pose(_ poses: [Pose], t: Double, bpm: Double) -> Pose {
-        let beats = t * bpm / 60
-        let i = Int(floor(beats)) % poses.count
-        var f = beats - floor(beats)
-        f = f * f * (3 - 2 * f)                       // smoothstep: snap into each move
-        let a = poses[i], b = poses[(i + 1) % poses.count]
-        return zip(a, b).map { CGPoint(x: $0.x + ($1.x - $0.x) * f, y: $0.y + ($1.y - $0.y) * f) }
+    private static func hue(_ h: Double, _ l: Double = 0.6) -> Color {
+        Color(hue: (h.truncatingRemainder(dividingBy: 360) + 360).truncatingRemainder(dividingBy: 360) / 360, saturation: 1, brightness: min(1, l + 0.4))
     }
 
-    private func dancer(_ ctx: GraphicsContext, _ r: CGRect, girl: Bool, t: Double) {
-        let p = pose(girl ? Self.ballet : Self.hipHop, t: t, bpm: girl ? 70 : 100)
-        let bounce = girl ? 0 : abs(sin(t * .pi * 100 / 60)) * 0.02
-        func pt(_ i: Int) -> CGPoint { CGPoint(x: r.minX + p[i].x * r.width, y: r.minY + (p[i].y - bounce) * r.height) }
-        func line(_ a: CGPoint, _ b: CGPoint, _ c: CGPoint? = nil) -> Path {
+    private func scene(_ ctx: GraphicsContext, _ size: CGSize, _ t: Double) {
+        let W = size.width, H = size.height
+        let beat = t * Self.bpm / 60
+        let hue = Double(Int(floor(beat)) * 47 % 360)
+        // dance floor
+        let n = 8, tw = W / CGFloat(n), fy = H * 0.9
+        for i in 0..<n {
+            let on = (Int(floor(beat)) + i) % 3 == 0
+            ctx.fill(Path(CGRect(x: CGFloat(i) * tw + 0.5, y: fy, width: tw - 1, height: H - fy)),
+                     with: .color(on ? Self.hue(hue + Double(i) * 40, 0.5).opacity(0.55) : .white.opacity(0.06)))
+        }
+        // light beams from the mirror ball
+        let ball = CGPoint(x: W / 2, y: H * 0.1)
+        for k in 0..<3 {
+            let a = Double.pi / 2 + sin(t * 1.3 + Double(k) * 2.1) * 0.9, sp = 0.12
+            var beam = Path()
+            beam.move(to: ball)
+            beam.addLine(to: CGPoint(x: ball.x + cos(a - sp) * H * 2, y: ball.y + sin(a - sp) * H * 2))
+            beam.addLine(to: CGPoint(x: ball.x + cos(a + sp) * H * 2, y: ball.y + sin(a + sp) * H * 2))
+            ctx.fill(beam, with: .color(Self.hue(hue + Double(k) * 120).opacity(0.16)))
+        }
+        // dancers
+        let list: [Bool] = who == "boy" ? [false] : who == "girl" ? [true] : [false, true]
+        let fw = min(W / CGFloat(list.count), H * 0.75)
+        let gap = (W - fw * CGFloat(list.count)) / CGFloat(list.count + 1)
+        for (i, girl) in list.enumerated() {
+            figure(ctx, CGRect(x: gap + CGFloat(i) * (fw + gap), y: H * 0.12, width: fw, height: H * 0.8), girl: girl, t: t, hue: hue + Double(i) * 140)
+        }
+        // mirror ball
+        let br = max(3, H * 0.1)
+        var c2 = ctx
+        c2.clip(to: Path(ellipseIn: CGRect(x: ball.x - br, y: ball.y - br, width: br * 2, height: br * 2)))
+        c2.fill(Path(CGRect(x: ball.x - br, y: ball.y - br, width: br * 2, height: br * 2)), with: .color(Color(red: 0.79, green: 0.82, blue: 0.91)))
+        var grid = Path()
+        for k in -3...3 { let yy = ball.y + CGFloat(k) * br / 3.2; grid.move(to: CGPoint(x: ball.x - br, y: yy)); grid.addLine(to: CGPoint(x: ball.x + br, y: yy)) }
+        let rot = (t * 1.5).truncatingRemainder(dividingBy: 1)
+        for k in -3...4 { let xx = ball.x + sin((Double(k) / 4 + rot / 4) * .pi) * br; grid.move(to: CGPoint(x: xx, y: ball.y - br)); grid.addLine(to: CGPoint(x: xx, y: ball.y + br)) }
+        c2.stroke(grid, with: .color(Color(red: 0.35, green: 0.39, blue: 0.47)), lineWidth: max(0.5, br * 0.12))
+        // sparkles
+        for k in 0..<4 {
+            let tw2 = (sin(t * 9 + Double(k) * 1.9) + 1) / 2
+            guard tw2 > 0.7 else { continue }
+            let a = Double(k) * 1.6 + t
+            let sp = CGPoint(x: ball.x + cos(a) * br * 1.8, y: ball.y + sin(a) * br * 1.3 + br * 0.6)
+            ctx.fill(Path(CGRect(x: sp.x - 0.5, y: sp.y - br * 0.5, width: 1, height: br)), with: .color(.white.opacity(tw2)))
+            ctx.fill(Path(CGRect(x: sp.x - br * 0.5, y: sp.y - 0.5, width: br, height: 1)), with: .color(.white.opacity(tw2)))
+        }
+    }
+
+    private func pose(_ t: Double, offset: Double) -> Pose {
+        let b = t * Self.bpm / 60 + offset
+        let i = Int(floor(b)) % Self.moves.count
+        var f = b - floor(b)
+        f = min(1, f * 1.6); f = f * f * (3 - 2 * f)       // hit each pose, then hold it
+        let a = Self.moves[i], c = Self.moves[(i + 1) % Self.moves.count]
+        return zip(a, c).map { CGPoint(x: $0.x + ($1.x - $0.x) * f, y: $0.y + ($1.y - $0.y) * f) }
+    }
+
+    private func figure(_ ctx: GraphicsContext, _ r: CGRect, girl: Bool, t: Double, hue: Double) {
+        let p = pose(t, offset: girl ? 3 : 0)
+        let bob = abs(sin(t * .pi * Self.bpm / 60)) * 0.025
+        func pt(_ i: Int) -> CGPoint { CGPoint(x: r.minX + p[i].x * r.width, y: r.minY + (p[i].y + bob) * r.height) }
+        let s = r.height, edge = max(1, s * 0.024)
+        let c1 = Self.hue(hue), c2 = Self.hue(hue + 50, 0.62)
+        let ink = Color(red: 0.02, green: 0.016, blue: 0.04)
+        let hd = pt(0), nk = pt(1), pv = pt(2), hr = s * 0.075
+        func tube(_ a: CGPoint, _ b: CGPoint, _ c: CGPoint? = nil) -> Path {
             var q = Path(); q.move(to: a)
             if let c { q.addQuadCurve(to: b, control: c) } else { q.addLine(to: b) }
             return q
         }
-        let s = r.height
-        let main: Color = girl ? Color(red: 1, green: 0.31, blue: 0.85) : Color(red: 1, green: 0.42, blue: 0.17)
-        let second: Color = girl ? Color(red: 0.44, green: 0.55, blue: 1) : Color(red: 0.18, green: 0.84, blue: 1)
-        let shoe = Color(red: 1, green: 0.83, blue: 0.3)
-        let hd = pt(0), nk = pt(1), pv = pt(2), hr = s * 0.07
-        // Body parts as tubes: drawing each tube in colour, then hollowing them all out,
-        // leaves one glowing outline around the whole silhouette.
-        var parts: [(Path, CGFloat, Color)] = []
-        parts.append((line(nk, pv), s * (girl ? 0.11 : 0.15), main))                          // torso
-        parts.append((line(nk, pt(4), pt(3)), s * (girl ? 0.045 : 0.06), main))              // arms
-        parts.append((line(nk, pt(6), pt(5)), s * (girl ? 0.045 : 0.06), main))
-        let legTop = girl ? CGPoint(x: pv.x, y: pv.y + s * 0.02) : pv
-        parts.append((line(legTop, pt(8), pt(7)), s * (girl ? 0.055 : 0.08), second))       // legs
-        parts.append((line(legTop, pt(10), pt(9)), s * (girl ? 0.055 : 0.08), second))
-        parts.append((line(hd, CGPoint(x: hd.x + 0.01, y: hd.y)), hr * 2, main))             // head
+        // Each piece: glow, neon tube, then hollow — drawn back to front so arms show over the body.
+        func piece(_ path: Path, _ w: CGFloat, _ col: Color) {
+            ctx.drawLayer { g in
+                g.addFilter(.blur(radius: max(1.5, s * 0.045)))
+                g.stroke(path, with: .color(col), style: StrokeStyle(lineWidth: w + edge * 3, lineCap: .round, lineJoin: .round))
+            }
+            ctx.stroke(path, with: .color(col), style: StrokeStyle(lineWidth: w, lineCap: .round, lineJoin: .round))
+            ctx.stroke(path, with: .color(ink), style: StrokeStyle(lineWidth: max(0, w - edge * 2), lineCap: .round, lineJoin: .round))
+        }
+        piece(tube(pv, pt(8), pt(7)), s * 0.065, c2)
+        piece(tube(pv, pt(10), pt(9)), s * 0.065, c2)
+        if !girl { for f in [8, 10] { let q = pt(f); piece(tube(CGPoint(x: q.x - s * 0.04, y: q.y - s * 0.015), CGPoint(x: q.x + s * 0.04, y: q.y - s * 0.015)), s * 0.06, c2) } }
+        piece(tube(nk, pv), s * (girl ? 0.1 : 0.13), c1)
         if girl {
-            let bun = CGPoint(x: hd.x + hr * 0.3, y: hd.y - hr * 1.1)
-            parts.append((line(bun, CGPoint(x: bun.x + 0.01, y: bun.y)), hr * 0.9, main))
-            let fl = sin(t * 6) * s * 0.015                                                    // tutu flutters
-            parts.append((line(CGPoint(x: pv.x - s * 0.17, y: pv.y + s * 0.03 + fl), CGPoint(x: pv.x + s * 0.17, y: pv.y + s * 0.03 - fl),
-                               CGPoint(x: pv.x, y: pv.y - s * 0.02)), s * 0.07, second))
-        } else {
-            parts.append((line(CGPoint(x: hd.x - hr * 0.2, y: hd.y - hr * 0.2), CGPoint(x: hd.x + hr * 0.3, y: hd.y + hr * 0.2)), hr * 2.5, main)) // hood
-            for f in [8, 10] {
-                let q = pt(f)
-                parts.append((line(CGPoint(x: q.x - s * 0.025, y: q.y), CGPoint(x: q.x + s * 0.045, y: q.y)), s * 0.06, shoe))  // sneakers
+            let sw = sin(t * .pi * Self.bpm / 60) * s * 0.03, top = pv.y - s * 0.1, bot = pv.y + s * 0.14
+            var dress = Path()
+            dress.move(to: CGPoint(x: pv.x - s * 0.05, y: top))
+            dress.addLine(to: CGPoint(x: pv.x - s * 0.17 + sw, y: bot))
+            dress.addQuadCurve(to: CGPoint(x: pv.x + s * 0.17 + sw, y: bot), control: CGPoint(x: pv.x + sw, y: bot + s * 0.04))
+            dress.addLine(to: CGPoint(x: pv.x + s * 0.05, y: top))
+            dress.closeSubpath()
+            ctx.drawLayer { g in
+                g.addFilter(.blur(radius: max(1.5, s * 0.045)))
+                g.stroke(dress, with: .color(c2), lineWidth: edge * 3)
             }
+            ctx.fill(dress, with: .color(ink))
+            ctx.stroke(dress, with: .color(c2), style: StrokeStyle(lineWidth: edge * 1.2, lineJoin: .round))
+            let sway = sin(t * 7) * hr * 0.6
+            piece(tube(CGPoint(x: hd.x - hr * 0.4, y: hd.y - hr * 0.3), CGPoint(x: hd.x - hr * 1.5 + sway, y: hd.y + hr * 2.2),
+                       CGPoint(x: hd.x - hr * 1.6, y: hd.y + hr * 0.4)), hr * 0.9, c1)       // hair flowing
         }
-        var trails = Path()
-        for k in 0..<3 {
-            let ph = t * (1.1 + Double(k) * 0.35) + Double(k) * 2.1
-            let rx = r.width * (0.46 + 0.06 * Double(k)), ry = r.height * (0.32 + 0.05 * Double(k))
-            for j in 0...12 {
-                let a = ph + Double(j) * 0.13
-                let q = CGPoint(x: r.midX + cos(a) * rx, y: r.midY + sin(a * 1.3) * ry)
-                if j == 0 { trails.move(to: q) } else { trails.addLine(to: q) }
-            }
-        }
-        let edge = max(1, s * 0.022)
-        func style(_ w: CGFloat) -> StrokeStyle { StrokeStyle(lineWidth: max(0, w), lineCap: .round, lineJoin: .round) }
-        ctx.drawLayer { g in
-            g.addFilter(.blur(radius: max(1.5, s * 0.05)))
-            g.opacity = 0.9
-            for (q, w, c) in parts { g.stroke(q, with: .color(c), style: style(w + edge * 3)) }
-        }
-        ctx.stroke(trails, with: .color(color.opacity(0.35)), style: StrokeStyle(lineWidth: max(0.8, s * 0.012), lineCap: .round))
-        for (q, w, c) in parts { ctx.stroke(q, with: .color(c), style: style(w)) }
-        for (q, w, _) in parts { ctx.stroke(q, with: .color(.black), style: style(w - edge * 2)) }
-        for (q, w, c) in parts { ctx.stroke(q, with: .color(c.opacity(0.13)), style: style(w - edge * 2)) }
-        ctx.fill(Path(ellipseIn: CGRect(x: r.midX - r.width * 0.32, y: r.maxY - 2.5, width: r.width * 0.64, height: 3)),
-                 with: .color((girl ? main : second).opacity(0.5)))
+        piece(tube(nk, pt(4), pt(3)), s * 0.05, c1)
+        piece(tube(nk, pt(6), pt(5)), s * 0.05, c1)
+        if !girl { piece(tube(CGPoint(x: hd.x, y: hd.y - hr * 0.25), CGPoint(x: hd.x + 0.01, y: hd.y - hr * 0.25)), hr * 2.9, c1) }  // afro
+        piece(tube(hd, CGPoint(x: hd.x + 0.01, y: hd.y)), hr * 2, c1)
     }
 }
 

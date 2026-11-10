@@ -108,7 +108,7 @@ struct CompactMusicView: View {
                     .shadow(color: music.artworkColor.opacity(music.isPlaying ? 0.6 : 0), radius: 6)
                 Spacer()
                 MusicWaves(playing: music.isPlaying, color: music.artworkColor, bars: 5)
-                    .frame(width: Prefs.string(Prefs.waveStyle) == "dance" ? (Prefs.string(Prefs.dancer) == "both" ? 40 : 22) : 24,
+                    .frame(width: Prefs.string(Prefs.waveStyle) == "dance" ? (Prefs.string(Prefs.dancer) == "both" ? 46 : 28) : 24,
                            height: Prefs.string(Prefs.waveStyle) == "dance" ? closed.height - 4 : closed.height * 0.5)
             }
             .frame(height: closed.height)

@@ -148,7 +148,7 @@ struct PlayerView: View {
                     }
                     if Prefs.string(Prefs.waveStyle) == "dance" {
                         Dancers(playing: music.isPlaying, color: music.artworkColor, who: Prefs.string(Prefs.dancer))
-                            .frame(width: Prefs.string(Prefs.dancer) == "both" ? 84 : 46, height: 52)
+                            .frame(width: Prefs.string(Prefs.dancer) == "both" ? 96 : 60, height: 56)
                     } else {
                         MusicWaves(playing: music.isPlaying, color: music.artworkColor, bars: 5).frame(width: 30, height: 18)
                     }

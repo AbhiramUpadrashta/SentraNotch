@@ -114,6 +114,8 @@ final class SystemHUD {
     private var tap: CFMachPort?
     private var listenedDevice: AudioDeviceID = 0
     private var suppressPollUntil = Date.distantPast
+    private var keyPressedUntil = Date.distantPast   // auto-brightness changes are ignored; only key presses show
+    private var keyMonitor: Any?
 
     func start() {
         lastVolume = Volume.level; lastMuted = Volume.muted
@@ -128,6 +130,14 @@ final class SystemHUD {
             Task { @MainActor in SystemHUD.shared.poll() }
         }
         applyReplacement()
+        // Watch the brightness / keyboard-light keys (no permission needed for media keys).
+        keyMonitor = NSEvent.addGlobalMonitorForEvents(matching: .systemDefined) { e in
+            guard e.subtype.rawValue == 8 else { return }
+            let code = Int((e.data1 & 0xFFFF0000) >> 16)
+            if [2, 3, 21, 22, 23].contains(code) {
+                Task { @MainActor in SystemHUD.shared.keyPressedUntil = Date().addingTimeInterval(1.2) }
+            }
+        }
     }
 
     private func listenToDevice() {
@@ -150,15 +160,16 @@ final class SystemHUD {
 
     private func poll() {
         guard Date() > suppressPollUntil else { return }
+        let byKey = Date() < keyPressedUntil
         if let b = Brightness.level, abs(b - lastBrightness) > 0.004 {
             let first = lastBrightness < 0
             lastBrightness = b
-            if !first { NotchModel.shared.show(.hud(.brightness, b, muted: false), for: 3) }
+            if !first && byKey { NotchModel.shared.show(.hud(.brightness, b, muted: false), for: 3) }
         }
         if let k = KeyboardLight.level, abs(k - lastKeyboard) > 0.004 {
             let first = lastKeyboard < 0
             lastKeyboard = k
-            if !first { NotchModel.shared.show(.hud(.keyboard, k, muted: false), for: 3) }
+            if !first && byKey { NotchModel.shared.show(.hud(.keyboard, k, muted: false), for: 3) }
         }
     }
 
