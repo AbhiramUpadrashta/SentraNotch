@@ -146,7 +146,12 @@ struct PlayerView: View {
                         MarqueeText(text: music.title).font(.system(size: 14, weight: .semibold))
                         Text(music.artist).font(.system(size: 12)).foregroundStyle(tint ? music.artworkColor : .white.opacity(0.6)).lineLimit(1)
                     }
-                    MusicWaves(playing: music.isPlaying, color: music.artworkColor, bars: 5).frame(width: 30, height: 18)
+                    if Prefs.string(Prefs.waveStyle) == "dance" {
+                        Dancers(playing: music.isPlaying, color: music.artworkColor, who: Prefs.string(Prefs.dancer))
+                            .frame(width: Prefs.string(Prefs.dancer) == "both" ? 84 : 46, height: 52)
+                    } else {
+                        MusicWaves(playing: music.isPlaying, color: music.artworkColor, bars: 5).frame(width: 30, height: 18)
+                    }
                 }
                 TimelineView(.periodic(from: .now, by: 0.5)) { tl in
                     VStack(alignment: .leading, spacing: 2) {

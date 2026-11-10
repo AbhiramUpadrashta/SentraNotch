@@ -73,73 +73,117 @@ struct MusicWaves: View {
     }
 }
 
-/// NEW: outline dancers (boy, girl or both) that dance while music plays. Shapes only, no faces.
+/// NEW: neon dancers (hip-hop boy, ballerina girl, or both) that dance while music plays.
+/// Glowing light-outline figures with light trails — shapes only, no faces.
 struct Dancers: View {
     var playing: Bool
     var color: Color
     var who: String     // boy | girl | both
 
+    // Skeleton joints in a unit box (x right, y down): head, neck, pelvis, lElbow, lHand, rElbow, rHand, lKnee, lFoot, rKnee, rFoot
+    typealias Pose = [CGPoint]
+    private static func P(_ v: [CGFloat]) -> Pose { stride(from: 0, to: v.count, by: 2).map { CGPoint(x: v[$0], y: v[$0 + 1]) } }
+    private static func mirror(_ p: Pose) -> Pose {
+        let m = p.map { CGPoint(x: 1 - $0.x, y: $0.y) }
+        return [m[0], m[1], m[2], m[5], m[6], m[3], m[4], m[9], m[10], m[7], m[8]]
+    }
+    static let hipHop: [Pose] = {
+        let a = P([0.50,0.10, 0.50,0.22, 0.50,0.52, 0.36,0.30, 0.27,0.15, 0.66,0.34, 0.75,0.48, 0.42,0.72, 0.37,0.96, 0.60,0.72, 0.67,0.96])
+        let b = P([0.55,0.12, 0.52,0.24, 0.48,0.54, 0.38,0.37, 0.33,0.52, 0.67,0.19, 0.82,0.07, 0.41,0.76, 0.40,0.97, 0.66,0.58, 0.57,0.80])
+        let c = P([0.45,0.19, 0.48,0.31, 0.52,0.61, 0.33,0.41, 0.28,0.57, 0.65,0.40, 0.75,0.29, 0.37,0.77, 0.29,0.97, 0.67,0.79, 0.74,0.97])
+        return [a, b, c, mirror(b)]
+    }()
+    static let ballet: [Pose] = {
+        let a = P([0.40,0.12, 0.42,0.22, 0.48,0.48, 0.30,0.22, 0.15,0.14, 0.58,0.12, 0.66,0.02, 0.48,0.72, 0.48,0.98, 0.67,0.45, 0.88,0.35])
+        let b = P([0.50,0.12, 0.50,0.22, 0.50,0.50, 0.42,0.10, 0.48,0.01, 0.58,0.10, 0.52,0.01, 0.48,0.73, 0.49,0.98, 0.58,0.65, 0.50,0.74])
+        let c = P([0.50,0.12, 0.50,0.22, 0.50,0.50, 0.34,0.27, 0.18,0.30, 0.66,0.27, 0.82,0.30, 0.46,0.74, 0.44,0.98, 0.56,0.74, 0.58,0.98])
+        return [a, b, c, mirror(a)]
+    }()
+
     var body: some View {
-        TimelineView(.animation(minimumInterval: 1 / 45, paused: !playing)) { tl in
-            let t = tl.date.timeIntervalSinceReferenceDate
+        TimelineView(.animation(minimumInterval: 1 / 50, paused: !playing)) { tl in
+            let t = playing ? tl.date.timeIntervalSinceReferenceDate : 0
             Canvas { ctx, size in
-                let figures: [Bool] = who == "boy" ? [false] : who == "girl" ? [true] : [false, true]
-                let w = size.width / CGFloat(figures.count)
-                for (i, girl) in figures.enumerated() {
-                    figure(ctx: ctx, rect: CGRect(x: CGFloat(i) * w, y: 0, width: w, height: size.height), girl: girl,
-                           t: playing ? t + Double(i) * 0.35 : 0)
+                let list: [Bool] = who == "boy" ? [false] : who == "girl" ? [true] : [false, true]
+                let w = size.width / CGFloat(list.count)
+                for (i, girl) in list.enumerated() {
+                    let h = size.height, fw = min(w, h * 0.9)
+                    let rect = CGRect(x: CGFloat(i) * w + (w - fw) / 2, y: 0, width: fw, height: h)
+                    dancer(ctx, rect, girl: girl, t: t + Double(i) * 0.5)
                 }
             }
         }
     }
 
-    private func figure(ctx: GraphicsContext, rect r: CGRect, girl: Bool, t: Double) {
-        let s = min(r.width / 1.0, r.height / 1.25)      // figure scale
-        let beat = sin(t * 2 * .pi * 2.0)               // 120 bpm
-        let bounce = abs(beat) * s * 0.06
-        let sway = sin(t * 2 * .pi) * s * 0.07
-        let cx = r.midX + sway
-        let headR = s * 0.11
-        let headY = r.minY + headR + s * 0.04 + bounce
-        let neck = CGPoint(x: cx, y: headY + headR)
-        let hip = CGPoint(x: cx - sway * 0.4, y: neck.y + s * 0.38)
-        let style = StrokeStyle(lineWidth: max(1.2, s * 0.06), lineCap: .round, lineJoin: .round)
-        var p = Path()
-        // head (outline)
-        p.addEllipse(in: CGRect(x: cx - headR, y: headY - headR, width: headR * 2, height: headR * 2))
-        if girl {   // ponytail swings with the beat
-            p.move(to: CGPoint(x: cx + headR * 0.8, y: headY - headR * 0.3))
-            p.addQuadCurve(to: CGPoint(x: cx + headR * (1.9 + beat * 0.4), y: headY + headR * 0.6),
-                           control: CGPoint(x: cx + headR * 1.8, y: headY - headR * 0.8))
+    private func pose(_ poses: [Pose], t: Double, bpm: Double) -> Pose {
+        let beats = t * bpm / 60
+        let i = Int(floor(beats)) % poses.count
+        var f = beats - floor(beats)
+        f = f * f * (3 - 2 * f)                       // smoothstep: snap into each move
+        let a = poses[i], b = poses[(i + 1) % poses.count]
+        return zip(a, b).map { CGPoint(x: $0.x + ($1.x - $0.x) * f, y: $0.y + ($1.y - $0.y) * f) }
+    }
+
+    private func dancer(_ ctx: GraphicsContext, _ r: CGRect, girl: Bool, t: Double) {
+        let p = pose(girl ? Self.ballet : Self.hipHop, t: t, bpm: girl ? 70 : 100)
+        let bounce = girl ? 0 : abs(sin(t * .pi * 100 / 60)) * 0.02
+        func pt(_ i: Int) -> CGPoint { CGPoint(x: r.minX + p[i].x * r.width, y: r.minY + (p[i].y - bounce) * r.height) }
+        func line(_ a: CGPoint, _ b: CGPoint, _ c: CGPoint? = nil) -> Path {
+            var q = Path(); q.move(to: a)
+            if let c { q.addQuadCurve(to: b, control: c) } else { q.addLine(to: b) }
+            return q
         }
-        // body
-        p.move(to: neck); p.addLine(to: hip)
-        // arms: up-and-down disco moves
-        let shoulder = CGPoint(x: neck.x, y: neck.y + s * 0.08)
-        let la = Angle.degrees(-150 + 70 * sin(t * 2 * .pi * 2)), ra = Angle.degrees(-30 - 70 * sin(t * 2 * .pi * 2 + .pi))
-        for a in [la, ra] {
-            let elbow = CGPoint(x: shoulder.x + cos(a.radians) * s * 0.17, y: shoulder.y + sin(a.radians) * s * 0.17)
-            let hand = CGPoint(x: elbow.x + cos(a.radians + 0.6) * s * 0.15, y: elbow.y + sin(a.radians + 0.6) * s * 0.15)
-            p.move(to: shoulder); p.addLine(to: elbow); p.addLine(to: hand)
+        let s = r.height
+        let main: Color = girl ? Color(red: 1, green: 0.31, blue: 0.85) : Color(red: 1, green: 0.42, blue: 0.17)
+        let second: Color = girl ? Color(red: 0.44, green: 0.55, blue: 1) : Color(red: 0.18, green: 0.84, blue: 1)
+        let shoe = Color(red: 1, green: 0.83, blue: 0.3)
+        let hd = pt(0), nk = pt(1), pv = pt(2), hr = s * 0.07
+        // Body parts as tubes: drawing each tube in colour, then hollowing them all out,
+        // leaves one glowing outline around the whole silhouette.
+        var parts: [(Path, CGFloat, Color)] = []
+        parts.append((line(nk, pv), s * (girl ? 0.11 : 0.15), main))                          // torso
+        parts.append((line(nk, pt(4), pt(3)), s * (girl ? 0.045 : 0.06), main))              // arms
+        parts.append((line(nk, pt(6), pt(5)), s * (girl ? 0.045 : 0.06), main))
+        let legTop = girl ? CGPoint(x: pv.x, y: pv.y + s * 0.02) : pv
+        parts.append((line(legTop, pt(8), pt(7)), s * (girl ? 0.055 : 0.08), second))       // legs
+        parts.append((line(legTop, pt(10), pt(9)), s * (girl ? 0.055 : 0.08), second))
+        parts.append((line(hd, CGPoint(x: hd.x + 0.01, y: hd.y)), hr * 2, main))             // head
+        if girl {
+            let bun = CGPoint(x: hd.x + hr * 0.3, y: hd.y - hr * 1.1)
+            parts.append((line(bun, CGPoint(x: bun.x + 0.01, y: bun.y)), hr * 0.9, main))
+            let fl = sin(t * 6) * s * 0.015                                                    // tutu flutters
+            parts.append((line(CGPoint(x: pv.x - s * 0.17, y: pv.y + s * 0.03 + fl), CGPoint(x: pv.x + s * 0.17, y: pv.y + s * 0.03 - fl),
+                               CGPoint(x: pv.x, y: pv.y - s * 0.02)), s * 0.07, second))
+        } else {
+            parts.append((line(CGPoint(x: hd.x - hr * 0.2, y: hd.y - hr * 0.2), CGPoint(x: hd.x + hr * 0.3, y: hd.y + hr * 0.2)), hr * 2.5, main)) // hood
+            for f in [8, 10] {
+                let q = pt(f)
+                parts.append((line(CGPoint(x: q.x - s * 0.025, y: q.y), CGPoint(x: q.x + s * 0.045, y: q.y)), s * 0.06, shoe))  // sneakers
+            }
         }
-        if girl {   // skirt outline
-            let hem = s * 0.2
-            p.move(to: CGPoint(x: hip.x - s * 0.06, y: hip.y - s * 0.08))
-            p.addLine(to: CGPoint(x: hip.x - hem + sway * 0.3, y: hip.y + s * 0.12))
-            p.addLine(to: CGPoint(x: hip.x + hem + sway * 0.3, y: hip.y + s * 0.12))
-            p.addLine(to: CGPoint(x: hip.x + s * 0.06, y: hip.y - s * 0.08))
+        var trails = Path()
+        for k in 0..<3 {
+            let ph = t * (1.1 + Double(k) * 0.35) + Double(k) * 2.1
+            let rx = r.width * (0.46 + 0.06 * Double(k)), ry = r.height * (0.32 + 0.05 * Double(k))
+            for j in 0...12 {
+                let a = ph + Double(j) * 0.13
+                let q = CGPoint(x: r.midX + cos(a) * rx, y: r.midY + sin(a * 1.3) * ry)
+                if j == 0 { trails.move(to: q) } else { trails.addLine(to: q) }
+            }
         }
-        // legs: alternate steps
-        let step = sin(t * 2 * .pi * 2)
-        let legTop = girl ? CGPoint(x: hip.x, y: hip.y + s * 0.12) : hip
-        let floorY = r.maxY - s * 0.02
-        for side in [-1.0, 1.0] {
-            let lift = max(0, step * side) * s * 0.12
-            let knee = CGPoint(x: legTop.x + side * s * 0.09, y: (legTop.y + floorY) / 2 - lift)
-            let foot = CGPoint(x: legTop.x + side * s * 0.13, y: floorY - lift * 0.6)
-            p.move(to: legTop); p.addLine(to: knee); p.addLine(to: foot)
+        let edge = max(1, s * 0.022)
+        func style(_ w: CGFloat) -> StrokeStyle { StrokeStyle(lineWidth: max(0, w), lineCap: .round, lineJoin: .round) }
+        ctx.drawLayer { g in
+            g.addFilter(.blur(radius: max(1.5, s * 0.05)))
+            g.opacity = 0.9
+            for (q, w, c) in parts { g.stroke(q, with: .color(c), style: style(w + edge * 3)) }
         }
-        ctx.stroke(p, with: .color(color), style: style)
+        ctx.stroke(trails, with: .color(color.opacity(0.35)), style: StrokeStyle(lineWidth: max(0.8, s * 0.012), lineCap: .round))
+        for (q, w, c) in parts { ctx.stroke(q, with: .color(c), style: style(w)) }
+        for (q, w, _) in parts { ctx.stroke(q, with: .color(.black), style: style(w - edge * 2)) }
+        for (q, w, c) in parts { ctx.stroke(q, with: .color(c.opacity(0.13)), style: style(w - edge * 2)) }
+        ctx.fill(Path(ellipseIn: CGRect(x: r.midX - r.width * 0.32, y: r.maxY - 2.5, width: r.width * 0.64, height: 3)),
+                 with: .color((girl ? main : second).opacity(0.5)))
     }
 }
 
