@@ -34,6 +34,8 @@ struct NotchShape: Shape {
 struct NotchRootView: View {
     @EnvironmentObject var model: NotchModel
     @ObservedObject var music = MusicModel.shared
+    @ObservedObject var power = PowerMonitor.shared
+    @Namespace private var albumNS
     @AppStorage(Prefs.theme) private var themeName = "midnight"
     @AppStorage(Prefs.shadow) private var shadow = true
     @AppStorage(Prefs.cornerScaling) private var cornerScaling = true
@@ -55,6 +57,7 @@ struct NotchRootView: View {
                     .padding(.horizontal, topR + (open ? 14 : 4))
                     .frame(width: size.width, height: size.height, alignment: .top)
                     .clipShape(NotchShape(top: topR, bottom: bottom))
+                    .environment(\.albumNS, albumNS)
             }
             .frame(width: size.width + topR * 2, height: size.height)
             .onDrop(of: [.fileURL, .url, .text, .image], isTargeted: Binding(get: { model.dropTargeted }, set: { t in
@@ -71,6 +74,7 @@ struct NotchRootView: View {
         .animation(.notchOpen, value: open)
         .animation(.notchPeek, value: model.peek)
         .animation(.notchPeek, value: music.showsCompact)
+        .animation(.notchPeek, value: power.showsCompact)
         .preferredColorScheme(.dark)
     }
 
@@ -85,11 +89,14 @@ struct NotchRootView: View {
 
     @ViewBuilder private func content(open: Bool) -> some View {
         if open {
-            OpenNotchView().transition(.opacity.combined(with: .scale(scale: 0.96, anchor: .top)))
+            OpenNotchView().transition(.asymmetric(insertion: .opacity.combined(with: .scale(scale: 0.97, anchor: .top)),
+                                                   removal: .opacity.animation(.easeOut(duration: 0.12))))
         } else if let p = model.peek {
             PeekView(peek: p, closed: model.closedSize).transition(.opacity.combined(with: .blurReplace))
         } else if music.showsCompact {
-            CompactMusicView(closed: model.closedSize).transition(.opacity)
+            CompactMusicView(closed: model.closedSize).transition(.opacity.animation(.easeOut(duration: 0.18)))
+        } else if power.showsCompact {
+            ChargingLiveView(closed: model.closedSize).transition(.opacity.combined(with: .scale(scale: 0.9)))
         } else if Prefs.bool(Prefs.idleFace) && model.hovering {
             IdleFace().frame(height: model.closedSize.height).transition(.opacity)
         }
@@ -100,11 +107,13 @@ struct NotchRootView: View {
 
 struct CompactMusicView: View {
     @ObservedObject var music = MusicModel.shared
+    @Environment(\.albumNS) private var ns
     let closed: CGSize
     var body: some View {
         VStack(spacing: 0) {
             HStack {
                 ArtworkView(size: closed.height - 8, radius: 6)
+                    .albumMatch(ns)
                     .shadow(color: music.artworkColor.opacity(music.isPlaying ? 0.6 : 0), radius: 6)
                 Spacer()
                 MusicWaves(playing: music.isPlaying, color: music.artworkColor, bars: 5)
@@ -158,6 +167,7 @@ struct PeekView: View {
         case .power(let e): PowerPeek(event: e, closed: closed)
         case .track: TrackPeek(closed: closed)
         case .download(let name, let done): DownloadPeek(name: name, done: done, closed: closed)
+        case .reminder(let id): if let k = ReminderKind.find(id) { ReminderPeek(kind: k, closed: closed) }
         case .hello: HelloPeek(closed: closed)
         case .notification(let t, let b, let alarm): NotificationPeek(title: t, bodyText: b, alarm: alarm, closed: closed)
         }
@@ -301,7 +311,7 @@ struct PowerPeek: View {
         } right: {
             HStack(spacing: 5) {
                 Text("\(power.level)%").font(.system(size: 12, weight: .semibold, design: .rounded)).monospacedDigit()
-                if Prefs.bool(Prefs.chargingAnimation), case .pluggedIn = event { ChargingBattery(level: power.level).frame(width: 30, height: 14) }
+                if Prefs.bool(Prefs.chargingAnimation), case .pluggedIn = event { PowerFlow(level: power.level).frame(width: 62, height: 18) }
                 else { BatteryIcon(level: power.level, charging: power.onAC, color: color) }
             }
         } bottom: { EmptyView() }

@@ -37,6 +37,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         SystemHUD.shared.start()
         BluetoothMonitor.shared.start()
         PowerMonitor.shared.start()
+        ReminderMonitor.shared.start()
         CalendarModel.shared.start()
         if Prefs.bool(Prefs.didOnboard) { DownloadMonitor.shared.start() }
         HotKeys.shared.register()

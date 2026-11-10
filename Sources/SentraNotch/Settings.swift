@@ -28,7 +28,7 @@ enum SettingsWindow {
 
 enum SettingsPage: String, CaseIterable, Identifiable {
     case general = "General", appearance = "Appearance", media = "Media", hud = "HUD", devices = "Devices & Battery"
-    case calendar = "Calendar", shelf = "Shelf", shortcuts = "Shortcuts", about = "About"
+    case calendar = "Calendar", reminders = "Reminders", shelf = "Shelf", shortcuts = "Shortcuts", about = "About"
     var id: String { rawValue }
     var icon: String {
         switch self {
@@ -38,6 +38,7 @@ enum SettingsPage: String, CaseIterable, Identifiable {
         case .hud: return "dial.medium.fill"
         case .devices: return "headphones"
         case .calendar: return "calendar"
+        case .reminders: return "drop.fill"
         case .shelf: return "tray.fill"
         case .shortcuts: return "command"
         case .about: return "info.circle.fill"
@@ -68,6 +69,7 @@ struct SettingsView: View {
         case .hud: HUDPage()
         case .devices: DevicesPage()
         case .calendar: CalendarPage()
+        case .reminders: RemindersPage()
         case .shelf: ShelfPage()
         case .shortcuts: ShortcutsPage()
         case .about: AboutPage()
@@ -268,6 +270,7 @@ struct DevicesPage: View {
     @AppStorage(Prefs.batteryPercent) var percent = true
     @AppStorage(Prefs.powerNotifications) var power = true
     @AppStorage(Prefs.chargingAnimation) var chargeAnim = true
+    @AppStorage(Prefs.chargingLive) var chargeLive = true
     @AppStorage(Prefs.lowBatteryAlert) var low = true
     @AppStorage(Prefs.downloads) var downloads = true
     @AppStorage(Prefs.notifications) var notifs = true
@@ -283,7 +286,8 @@ struct DevicesPage: View {
             Toggle("Battery in the open notch", isOn: $battery)
             Toggle("Show percentage", isOn: $percent).disabled(!battery)
             Toggle("Plugged in / unplugged / full", isOn: $power)
-            Toggle("Charging animation (filling battery)", isOn: $chargeAnim)
+            Toggle("Charging animation (power flowing into the battery)", isOn: $chargeAnim)
+            Toggle("Keep it live in the notch while charging (when no music is playing)", isOn: $chargeLive)
             Toggle("Low battery warnings (20%, 10%, 5%)", isOn: $low)
         }
         Section("Notifications & alarms (new in Sentra)") {

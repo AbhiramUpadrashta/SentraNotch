@@ -38,6 +38,7 @@ enum Peek: Equatable {
     case track                  // sneak peek of a new song
     case download(String, done: Bool)
     case notification(String, String, alarm: Bool)
+    case reminder(String)
     case hello
 
     var priority: Int {
@@ -47,6 +48,7 @@ enum Peek: Equatable {
         case .device: return 3
         case .notification(_, _, let alarm): return alarm ? 4 : 3
         case .power: return 2
+        case .reminder: return 3
         case .download: return 1
         case .track: return 0
         }
@@ -79,17 +81,18 @@ final class NotchModel: ObservableObject {
             if Prefs.bool(Prefs.hudInline) { s.width += 250 } else { s.height += 30; s.width += 120 }
         case .device: s.width += 260; s.height += 26
         case .notification: s.width += 300; s.height += 42
-        case .power: s.width += Prefs.bool(Prefs.chargingAnimation) ? 230 : 210
+        case .power: s.width += Prefs.bool(Prefs.chargingAnimation) ? 250 : 210
         case .track:
             if Prefs.string(Prefs.sneakPeekStyle) == "inline" { s.width += 220 } else { s.height += 34; s.width += 60 }
         case .download: s.width += 140
+        case .reminder: s.width += 270; s.height += 26
         case .hello: s.width += 120; s.height += 20
         case nil:
             if MusicModel.shared.showsCompact {
                 s.width += 110
                 if MusicModel.shared.showsLyricLine { s.height += 22; s.width += 60 }
             }
-            else if PowerMonitor.shared.showsCompact { s.width += 72 }
+            else if PowerMonitor.shared.showsCompact { s.width += 150 }
         }
         return s
     }
@@ -139,7 +142,7 @@ final class NotchModel: ObservableObject {
 }
 
 extension Animation {
-    static let notchOpen = Animation.spring(response: 0.42, dampingFraction: 0.78, blendDuration: 0)
-    static let notchClose = Animation.spring(response: 0.38, dampingFraction: 0.92, blendDuration: 0)
-    static let notchPeek = Animation.spring(response: 0.36, dampingFraction: 0.8, blendDuration: 0)
+    static let notchOpen = Animation.spring(response: 0.34, dampingFraction: 0.8, blendDuration: 0)
+    static let notchClose = Animation.spring(response: 0.3, dampingFraction: 0.9, blendDuration: 0)
+    static let notchPeek = Animation.spring(response: 0.32, dampingFraction: 0.8, blendDuration: 0)
 }

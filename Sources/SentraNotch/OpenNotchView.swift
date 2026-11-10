@@ -119,6 +119,7 @@ struct NothingPlaying: View {
 
 struct PlayerView: View {
     @ObservedObject var music = MusicModel.shared
+    @Environment(\.albumNS) private var ns
     @AppStorage(Prefs.glow) private var glow = true
     @AppStorage(Prefs.tintPlayer) private var tint = true
     @AppStorage(Prefs.sliderColor) private var sliderColor = "album"
@@ -133,6 +134,7 @@ struct PlayerView: View {
                     Image(nsImage: a).resizable().scaledToFill().frame(width: 76, height: 76).blur(radius: 20).opacity(music.isPlaying ? 0.8 : 0.35)
                 }
                 ArtworkView(size: 76, radius: 13)
+                    .albumMatch(ns)
                     .scaleEffect(music.isPlaying ? 1 : 0.9)
                     .animation(.spring(response: 0.4, dampingFraction: 0.6), value: music.isPlaying)
                     .onTapGesture { music.openPlayerApp() }
@@ -146,13 +148,16 @@ struct PlayerView: View {
                         MarqueeText(text: music.title).font(.system(size: 14, weight: .semibold))
                         Text(music.artist).font(.system(size: 12)).foregroundStyle(tint ? music.artworkColor : .white.opacity(0.6)).lineLimit(1)
                     }
+                    Spacer(minLength: 4)
                     if Prefs.string(Prefs.waveStyle) == "dance" {
+                        // fixed height so the controls never get pushed down
                         Dancers(playing: music.isPlaying, color: music.artworkColor, who: Prefs.string(Prefs.dancer))
-                            .frame(width: Prefs.string(Prefs.dancer) == "both" ? 96 : 60, height: 56)
+                            .frame(width: Prefs.string(Prefs.dancer) == "both" ? 72 : 46, height: 34)
                     } else {
-                        MusicWaves(playing: music.isPlaying, color: music.artworkColor, bars: 5).frame(width: 30, height: 18)
+                        MusicWaves(playing: music.isPlaying, color: music.artworkColor, bars: 6).frame(width: 34, height: 20)
                     }
                 }
+                .frame(height: 36)
                 TimelineView(.periodic(from: .now, by: 0.5)) { tl in
                     VStack(alignment: .leading, spacing: 2) {
                         if Prefs.bool(Prefs.lyrics), let line = music.currentLyric(at: tl.date) {

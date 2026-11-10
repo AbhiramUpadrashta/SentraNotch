@@ -36,17 +36,43 @@ struct MusicWaves: View {
     private func draw(ctx: GraphicsContext, size: CGSize, t: Double, tint: Color) {
         let shading = GraphicsContext.Shading.linearGradient(Gradient(colors: [tint.opacity(0.7), tint, tint.opacity(0.9)]),
                                                              startPoint: CGPoint(x: 0, y: size.height), endPoint: CGPoint(x: 0, y: 0))
+        // a soft "kick" on every beat (~120 bpm) so the motion feels like music, not random noise
+        let kick = playing ? pow(max(0, cos(t * .pi * 2)), 10) : 0
         switch style {
         case "waves":
-            for layer in 0..<3 {
-                var p = Path()
-                let amp = size.height / 2 * (playing ? (0.9 - Double(layer) * 0.22) * (0.55 + 0.45 * noise(t * 0.6, Double(layer))) : 0.06)
+            // Siri-like ribbons: mirrored waves, filled softly, with a glowing edge
+            let mid = size.height / 2
+            for layer in (0..<3).reversed() {
+                let L = Double(layer)
+                let energy = playing ? (0.95 - L * 0.22) * (0.5 + 0.35 * noise(t * 0.7, L * 2.3) + 0.25 * kick) : 0.05
+                let amp = mid * min(1, energy)
+                var up = Path(), down = Path()
                 for x in stride(from: 0, through: size.width, by: 1) {
                     let r = x / size.width
-                    let y = size.height / 2 + amp * sin(r * .pi) * sin(r * .pi * (2.4 + Double(layer) * 0.8) - t * (4 + Double(layer) * 1.4))
-                    if x == 0 { p.move(to: CGPoint(x: x, y: y)) } else { p.addLine(to: CGPoint(x: x, y: y)) }
+                    let env = pow(sin(r * .pi), 1.6)
+                    let y = amp * env * sin(r * .pi * (2 + L * 0.9) - t * (5 + L * 1.7) + L * 1.3)
+                    let pU = CGPoint(x: x, y: mid - y), pD = CGPoint(x: x, y: mid + y)
+                    if x == 0 { up.move(to: pU); down.move(to: pD) } else { up.addLine(to: pU); down.addLine(to: pD) }
                 }
-                ctx.stroke(p, with: .color(tint.opacity(1 - Double(layer) * 0.3)), style: StrokeStyle(lineWidth: 2 - CGFloat(layer) * 0.45, lineCap: .round))
+                var ribbon = up
+                ribbon.addPath(Path { p in
+                    for x in stride(from: size.width, through: 0, by: -1) {
+                        let r = x / size.width, env = pow(sin(r * .pi), 1.6)
+                        let y = amp * env * sin(r * .pi * (2 + L * 0.9) - t * (5 + L * 1.7) + L * 1.3)
+                        if x == size.width { p.move(to: CGPoint(x: x, y: mid + y)) } else { p.addLine(to: CGPoint(x: x, y: mid + y)) }
+                    }
+                })
+                ctx.fill(ribbon, with: .color(tint.opacity(0.14 + 0.06 * (2 - L))))
+                let w = 1.8 - CGFloat(layer) * 0.45
+                if layer == 0 {
+                    ctx.drawLayer { g in
+                        g.addFilter(.blur(radius: 2.5))
+                        g.stroke(up, with: .color(tint), lineWidth: w + 2); g.stroke(down, with: .color(tint), lineWidth: w + 2)
+                    }
+                }
+                let c = tint.opacity(1 - L * 0.3)
+                ctx.stroke(up, with: .color(c), style: StrokeStyle(lineWidth: w, lineCap: .round))
+                ctx.stroke(down, with: .color(c.opacity(0.7)), style: StrokeStyle(lineWidth: w * 0.8, lineCap: .round))
             }
         case "pulse":
             let v = playing ? 0.55 + 0.45 * noise(t * 1.4, 1) : 0.4
@@ -58,16 +84,31 @@ struct MusicWaves: View {
                 ctx.stroke(Path(ellipseIn: CGRect(x: size.width / 2 - rr, y: size.height / 2 - rr, width: rr * 2, height: rr * 2)),
                            with: .color(tint.opacity(playing ? 0.5 * (1 - ph) : 0)), lineWidth: 1)
             }
-        default: // spectrum bars, mirrored around the middle like a real analyser
+        default: // spectrum bars, mirrored around the middle, with a glow and a bright tip
             let n = max(3, bars)
-            let gap = size.width * 0.12 / CGFloat(n)
+            let gap = size.width * 0.14 / CGFloat(n)
             let w = (size.width - gap * CGFloat(n - 1)) / CGFloat(n)
+            var rects: [CGRect] = []
             for i in 0..<n {
-                let centre = 1 - abs(Double(i) - Double(n - 1) / 2) / Double(n) * 0.9
-                let v = playing ? 0.18 + 0.82 * noise(t * 2.2, Double(i) * 1.37) * centre : 0.16
+                let off = abs(Double(i) - Double(n - 1) / 2) / Double(n)
+                let centre = 1 - off * 0.8
+                let lowEnd = noise(t * 1.6, Double(i) * 1.37), highEnd = noise(t * 3.4, Double(i) * 2.11 + 5)
+                let v = playing ? 0.16 + 0.84 * min(1, (0.62 * lowEnd + 0.38 * highEnd) * centre + kick * 0.35 * (1 - off)) : 0.16
                 let h = max(w, size.height * v)
-                let rect = CGRect(x: CGFloat(i) * (w + gap), y: (size.height - h) / 2, width: w, height: h)
-                ctx.fill(Path(roundedRect: rect, cornerRadius: w / 2), with: shading)
+                rects.append(CGRect(x: CGFloat(i) * (w + gap), y: (size.height - h) / 2, width: w, height: h))
+            }
+            if playing {
+                ctx.drawLayer { g in
+                    g.addFilter(.blur(radius: 3))
+                    for r in rects { g.fill(Path(roundedRect: r, cornerRadius: w / 2), with: .color(tint.opacity(0.55))) }
+                }
+            }
+            let shade = GraphicsContext.Shading.linearGradient(Gradient(colors: [tint.opacity(0.75), tint, tint.opacity(0.75)]),
+                                                               startPoint: CGPoint(x: 0, y: size.height), endPoint: CGPoint(x: 0, y: 0))
+            for r in rects {
+                ctx.fill(Path(roundedRect: r, cornerRadius: w / 2), with: shade)
+                ctx.fill(Path(roundedRect: CGRect(x: r.minX + w * 0.2, y: r.minY + w * 0.15, width: w * 0.6, height: min(r.height * 0.3, w)), cornerRadius: w * 0.3),
+                         with: .color(.white.opacity(playing ? 0.45 : 0.15)))
             }
         }
     }

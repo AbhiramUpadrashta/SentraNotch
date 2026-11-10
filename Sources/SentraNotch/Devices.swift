@@ -183,7 +183,8 @@ final class PowerMonitor: ObservableObject {
     private var warnedLow = Set<Int>()
     private var started = false
 
-    var showsCompact: Bool { false }
+    /// Live charging animation in the closed notch (only when nothing else, like music, is showing).
+    var showsCompact: Bool { Prefs.bool(Prefs.chargingLive) && hasBattery && onAC && charging && level < 100 }
 
     func start() {
         read(announce: false)
