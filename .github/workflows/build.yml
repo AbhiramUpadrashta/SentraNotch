@@ -13,7 +13,9 @@ jobs:
       - uses: actions/checkout@v4
         with: { fetch-depth: 2 }
       - name: Build
-        run: bash build.sh
+        run: |
+          set -o pipefail
+          bash build.sh 2>&1 | tee build.log || { grep -E "error:" build.log | sed 's#.*/Sources/SentraNotch/##' | sort -u | head -45 | while IFS= read -r l; do echo "::error::$l"; done; exit 1; }
       - name: Package
         run: |
           cd build && ditto -c -k --sequesterRsrc --keepParent "Sentra Notch.app" SentraNotch.zip
