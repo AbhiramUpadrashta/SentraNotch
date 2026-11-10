@@ -1,0 +1,51 @@
+name: Build & Release Sentra Notch
+on:
+  push:
+    branches: [main]
+    paths: ["Sources/**", "Resources/**", "build.sh", "release.txt", ".github/workflows/build.yml"]
+  workflow_dispatch:
+permissions: { contents: write }
+concurrency: { group: build, cancel-in-progress: true }
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 2 }
+      - name: Build
+        run: bash build.sh
+      - name: Package
+        run: |
+          cd build && ditto -c -k --sequesterRsrc --keepParent "Sentra Notch.app" SentraNotch.zip
+          hdiutil create -volname "Sentra Notch" -srcfolder "Sentra Notch.app" -ov -format UDZO SentraNotch.dmg >/dev/null
+          shasum -a 256 SentraNotch.zip > SentraNotch.zip.sha256
+      - name: Should release?
+        id: rel
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: |
+          V=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' Resources/Info.plist)
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          if gh release view "v$V" >/dev/null 2>&1; then echo "go=false" >> "$GITHUB_OUTPUT"; else echo "go=true" >> "$GITHUB_OUTPUT"; fi
+      - name: Sign update
+        if: steps.rel.outputs.go == 'true'
+        env: { KEY: "${{ secrets.UPDATE_SIGNING_KEY }}" }
+        run: |
+          python3 -m venv /tmp/v && /tmp/v/bin/pip install -q cryptography
+          /tmp/v/bin/python - <<'PY'
+          import base64, os
+          from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+          k = Ed25519PrivateKey.from_private_bytes(base64.b64decode(os.environ["KEY"]))
+          d = open("build/SentraNotch.zip", "rb").read()
+          open("build/SentraNotch.zip.sig", "w").write(base64.b64encode(k.sign(d)).decode() + "\n")
+          PY
+      - name: Publish release
+        if: steps.rel.outputs.go == 'true'
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: |
+          V=${{ steps.rel.outputs.version }}
+          gh release create "v$V" build/SentraNotch.zip build/SentraNotch.zip.sig build/SentraNotch.zip.sha256 build/SentraNotch.dmg \
+            --title "Sentra Notch $V" --latest --notes "Sentra Notch $V — your notch, now intelligent. By Bubbles Aro.
+
+          **Install:** download SentraNotch.dmg, drag Sentra Notch to Applications, then right-click → Open the first time.
+
+          Website: https://bubbles.foo.ng/SentraNotch/"
