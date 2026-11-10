@@ -20,6 +20,8 @@
     prev:'<svg viewBox="0 0 24 24" width="17" height="17" fill="#fff"><path d="M11 6v12L2.5 12zM21 6v12l-8.5-6z"/></svg>',
     next:'<svg viewBox="0 0 24 24" width="17" height="17" fill="#fff"><path d="M13 6v12l8.5-6zM3 6v12l8.5-6z"/></svg>',
     pause:'<svg viewBox="0 0 24 24" width="22" height="22" fill="#fff"><rect x="6" y="4.5" width="4" height="15" rx="1.2"/><rect x="14" y="4.5" width="4" height="15" rx="1.2"/></svg>',
+    bell:'<svg viewBox="0 0 24 24" width="15" height="15" fill="#7c9cff"><path d="M12 2a6 6 0 0 0-6 6v4l-2 3h16l-2-3V8a6 6 0 0 0-6-6zM9.5 19a2.5 2.5 0 0 0 5 0z"/></svg>',
+    alarm:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#ffb34d" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="13" r="7.5"/><path d="M12 9.5V13l2.5 2M4 4.5 6.5 2.5M20 4.5l-2.5-2"/></svg>',
     rep:'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="rgba(255,255,255,.75)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l3 3-3 3M4 11V9a4 4 0 0 1 4-4h12M7 22l-3-3 3-3M20 13v2a4 4 0 0 1-4 4H4"/></svg>',
   };
   const wavesSVG=(c='#ff8fb1')=>`<canvas class="waves" data-c="${c}" width="52" height="32"></canvas>`;
@@ -35,6 +37,8 @@
     mute:{w:240,h:62,html:`<div class="n-row">${I.mute}<b style="font-size:12px">0</b></div><div class="n-bottom" style="padding:0 18px"><div class="bar"><i style="width:0"></i></div></div>`,cap:'Muted'},
     pair:{w:440,h:58,html:`<div class="n-row"><span class="spin" style="display:inline-flex">${I.mouse}</span><span id="pr" style="display:inline-flex">${I.radio}</span></div><div class="n-bottom">Magic Mouse<span class="n-sub" id="ps">Connecting…</span></div>`,cap:'NEW · Bluetooth pairing',run:pair},
     airpods:{w:440,h:58,html:`<div class="n-row"><span class="spin" style="display:inline-flex">${I.pods}</span><span id="pr" style="display:inline-flex">${I.radio}</span></div><div class="n-bottom">AirPods Pro<span class="n-sub" id="ps">Connecting…</span></div>`,cap:'NEW · AirPods battery',run:el=>pair(el,true)},
+    notif:{w:480,h:74,html:`<div class="n-row"><span class="wig" style="display:inline-flex">${I.bell}</span><span style="font-size:11px;color:#99a">Now</span></div><div class="n-bottom" style="line-height:1.35">Sam<br><span class="n-sub" style="margin:0">Running 5 min late, order me a latte ☕</span></div>`,cap:'NEW · Notifications'},
+    alarm:{w:480,h:74,html:`<div class="n-row"><span class="wig" style="display:inline-flex">${I.alarm}</span><span style="font-size:11px;color:#ffb34d">Alarm</span></div><div class="n-bottom" style="line-height:1.35">Wake up<br><span class="n-sub" style="margin:0">7:00 AM · Clock</span></div>`,cap:'NEW · Alarms'},
     charging:{w:350,h:32,html:`<div class="n-row"><b style="color:#4ade80;font-size:12px">Charging</b><span style="font-size:12px;display:inline-flex;gap:6px;align-items:center">78% ${I.batt(78,"#4ade80")}${I.bolt}</span></div>`,cap:'Charging'},
     open:{w:640,h:200,open:true,html:`<div class="n-row" style="opacity:.8;font-size:12px"><span style="display:inline-flex;gap:12px;align-items:center">${I.home}${I.tray}</span><span style="display:inline-flex;gap:8px;align-items:center">${I.gear}84% ${I.batt(84,"#4ade80")}</span></div><div class="n-open"><div class="big-art"></div><div class="pl" style="flex:1"><h4>Neon Skies</h4><p>Aurora Lane · Night Drive</p><div class="scr"><i></i></div><div class="ctl">${I.shuf}${I.prev}${I.pause}${I.next}${I.rep}</div></div><div class="cal"><b>Today</b><div class="ev"><i style="background:#7c9cff"></i><div>Design review<small>10:00 – 10:30</small></div></div><div class="ev"><i style="background:#ff8fb1"></i><div>Lunch with Sam<small>13:00</small></div></div><div class="ev"><i style="background:#5fd9b6"></i><div>Ship Sentra<small>Reminder</small></div></div></div></div>`,cap:'Open notch · hover'},
   };
@@ -52,8 +56,8 @@
 
   // hero cycle
   const notch=$('#notch'),cap=$('#cap'),tabs=$('#tabs');
-  const order=['music','peek','volume','pair','brightness','charging','airpods','mute','open'];
-  const labels={music:'Music',peek:'Sneak peek',volume:'Volume',pair:'Mouse pairing',brightness:'Brightness',charging:'Charging',airpods:'AirPods',mute:'Mute',open:'Open notch'};
+  const order=['music','peek','volume','pair','notif','brightness','charging','airpods','alarm','mute','open'];
+  const labels={music:'Music',peek:'Sneak peek',volume:'Volume',pair:'Mouse pairing',brightness:'Brightness',charging:'Charging',airpods:'AirPods',notif:'Notification',alarm:'Alarm',mute:'Mute',open:'Open notch'};
   let i=0,timer,manual=false;
   order.forEach(n=>{const b=document.createElement('button');b.textContent=labels[n];b.onclick=()=>{manual=true;go(order.indexOf(n));clearInterval(timer);timer=setInterval(next,4200)};tabs.appendChild(b)});
   function go(k){i=k;render(notch,order[i]);cap.textContent=states[order[i]].cap;[...tabs.children].forEach((b,j)=>b.classList.toggle('on',j==i))}
@@ -70,6 +74,7 @@
     ['music','Music from any app','Apple Music, Spotify, YouTube in your browser — album art, flowing waves, controls, scrubbing and synced lyrics.'],
     ['volume','Volume & brightness','Smooth HUDs for volume, mute, display and keyboard light. Optionally replaces Apple\'s pop-up.'],
     ['pair','Bluetooth pairing','NEW: devices spin in for 2 seconds, then show their battery. Mice, keyboards, AirPods, headphones.',1],
+    ['notif','Notifications & alarms','NEW: messages, mail, calendar and Clock alarms ring in the notch with the title and first line.',1],
     ['charging','Battery & charging','Plugged in, unplugged, fully charged and low-battery warnings — at a glance.'],
     ['peek','Sneak peek','A new song slides out for 2–3 seconds, then the notch tucks itself back in.'],
     ['open','Calendar, shelf & mirror','Today\'s agenda and reminders, a drag-and-drop shelf with AirDrop, and a camera mirror.'],

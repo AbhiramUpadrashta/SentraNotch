@@ -73,6 +73,8 @@ h1{font-size:clamp(42px,7.4vw,86px);line-height:1.02;letter-spacing:-.05em;font-
 .bar{height:6px;border-radius:9px;background:rgba(255,255,255,.15);overflow:hidden;margin-top:6px}
 .bar i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,#9db0ff,var(--blue));box-shadow:0 0 10px var(--blue);transition:width .25s}
 .spin{animation:spin 2s cubic-bezier(.45,.05,.3,1)}
+.wig{animation:wig .14s ease-in-out 8 alternate;transform-origin:50% 0}
+@keyframes wig{from{transform:rotate(-16deg)}to{transform:rotate(16deg)}}
 @keyframes spin{to{transform:rotateY(720deg)}}
 .ring{width:22px;height:22px}
 .n-open{position:absolute;inset:36px 18px 14px;display:flex;gap:16px;opacity:0;transition:opacity .3s .2s;text-align:left}
@@ -169,7 +171,7 @@ footer .wrap{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;
 </div></nav>
 
 <header class="hero"><div class="wrap">
-  <div class="pill"><b>NEW</b> Bluetooth pairing animations · free for macOS</div>
+  <div class="pill"><b>NEW</b> Bluetooth pairing · notifications &amp; alarms · free for macOS</div>
   <h1>Your notch,<br><span class="grad">now intelligent.</span></h1>
   <p class="sub">Sentra Notch turns the MacBook notch into a living control centre — music with flowing waves, smooth volume &amp; brightness, devices that announce themselves, your day, your files. Hover and it opens.</p>
   <div class="ctas">
@@ -203,6 +205,7 @@ footer .wrap{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;
     <ul class="bul">
       <li><span class="d">●</span><span><b>Mice, keyboards &amp; trackpads</b> — battery read straight from the device, with a charging bolt when plugged in.</span></li>
       <li><span class="d">●</span><span><b>AirPods, Beats &amp; headphones</b> — left, right and case levels.</span></li>
+      <li><span class="d">●</span><span><b>Notifications &amp; alarms</b> — Messages, Mail, Calendar and Clock alarms ring right in the notch.</span></li>
       <li><span class="d">●</span><span><b>Speakers &amp; game controllers</b> — the right icon for every device, and a quiet note when it disconnects.</span></li>
     </ul>
   </div>
@@ -232,7 +235,7 @@ footer .wrap{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;
 <section id="install" style="padding-top:20px"><div class="wrap">
   <div class="center reveal"><div class="eyebrow">Install</div><h2>Ready in a minute.</h2></div>
   <div class="steps">
-    <div class="step reveal"><h3>Download</h3><p>Get <b>SentraNotch.dmg</b> and drag <b>Sentra Notch</b> into Applications.</p></div>
+    <div class="step reveal"><h3>Download</h3><p>Get <b>SentraNotch.dmg</b> and open Sentra Notch. It offers to <b>move itself to Applications</b> — one click and it's installed.</p></div>
     <div class="step reveal"><h3>Open it once</h3><p>Right-click the app → <b>Open</b> (it's a free indie app, not notarized yet). Or run:<span class="code">xattr -dr com.apple.quarantine "/Applications/Sentra Notch.app"</span></p></div>
     <div class="step reveal"><h3>Hover the notch</h3><p>That's it. Click ✨ in the menu bar for settings. Updates arrive inside the app — <b>Settings → About → Check for Updates</b>.</p></div>
   </div>
@@ -245,6 +248,7 @@ footer .wrap{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;
     <details class="reveal"><summary>Does it work without a notch?</summary><p>Yes. On external displays and Macs without a notch it draws a sleek virtual notch at the top of the screen.</p></details>
     <details class="reveal"><summary>Which music apps work?</summary><p>Anything that shows in Control Centre: Apple Music, Spotify, YouTube and other sites in your browser, podcasts and more.</p></details>
     <details class="reveal"><summary>Which permissions does it need?</summary><p>None to start. Calendar, Camera (mirror) and Accessibility (to replace Apple's volume pop-up) are optional and only asked when you turn those features on.</p></details>
+    <details class="reveal"><summary>Can it show my notifications and alarms?</summary><p>Yes. Turn on Accessibility for Sentra Notch (System Settings → Privacy &amp; Security → Accessibility) and notifications, reminders and Clock alarms appear in the notch with a little ring animation.</p></details>
     <details class="reveal"><summary>How do updates work?</summary><p>Sentra Notch checks once a day. Every update is cryptographically signed and verified before it installs.</p></details>
     <details class="reveal"><summary>Is it related to Boring Notch?</summary><p>Sentra Notch is inspired by the wonderful open-source Boring Notch, but it's an independent app written from scratch by Bubbles Aro, with new features like Bluetooth pairing animations.</p></details>
   </div>
