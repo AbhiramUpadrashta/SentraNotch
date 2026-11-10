@@ -208,6 +208,7 @@ struct PeekView: View {
         case .track: TrackPeek(closed: closed)
         case .download(let name, let done): DownloadPeek(name: name, done: done, closed: closed)
         case .hello: HelloPeek(closed: closed)
+        case .notification(let t, let b, let alarm): NotificationPeek(title: t, bodyText: b, alarm: alarm, closed: closed)
         }
     }
 }
@@ -391,6 +392,30 @@ struct TrackPeek: View {
                     .font(.system(size: 11.5, weight: .medium)).foregroundStyle(.white.opacity(0.85)).padding(.horizontal, 12).padding(.bottom, 6)
             }
         }
+    }
+}
+
+struct NotificationPeek: View {
+    let title: String; let bodyText: String; let alarm: Bool; let closed: CGSize
+    @State private var ring = false
+    var body: some View {
+        SidesLayout(closed: closed) {
+            Image(systemName: alarm ? "alarm.fill" : "bell.fill")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(alarm ? .orange : .sentraAccent)
+                .rotationEffect(.degrees(ring ? 14 : -14), anchor: .top)
+                .animation(.easeInOut(duration: 0.12).repeatCount(alarm ? 14 : 6, autoreverses: true), value: ring)
+                .onAppear { ring = true }
+        } right: {
+            Text(alarm ? "Alarm" : "Now").font(.system(size: 11, weight: .medium)).foregroundStyle(.white.opacity(0.55))
+        } bottom: {
+            VStack(spacing: 1) {
+                Text(title).font(.system(size: 12, weight: .semibold)).lineLimit(1)
+                if !bodyText.isEmpty { Text(bodyText).font(.system(size: 11)).foregroundStyle(.white.opacity(0.7)).lineLimit(1) }
+            }
+            .padding(.horizontal, 14).padding(.bottom, 6)
+        }
+        .onTapGesture { NotchModel.shared.clearPeek() }
     }
 }
 

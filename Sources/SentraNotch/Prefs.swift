@@ -76,6 +76,7 @@ enum Prefs {
 
     // Downloads
     static let downloads = "downloads"
+    static let notifications = "notifications"        // show notifications & alarms in the notch
 
     // Shelf
     static let shelf = "shelf"
@@ -107,7 +108,7 @@ enum Prefs {
         hudReplace: false, hudInline: false, hudGradient: true, hudAccent: true, hudPercent: true, hudInOpenNotch: true,
         bluetoothActivity: true, bluetoothSeconds: 3.5, bluetoothDisconnect: true,
         batteryIndicator: true, batteryPercent: true, powerNotifications: true, lowBatteryAlert: true,
-        downloads: true,
+        downloads: true, notifications: true,
         shelf: true, shelfOpensByDefault: true, copyOnDrag: false, autoRemoveShelf: false, expandedDrop: true,
         hideAllDay: false, fullEventTitles: false, showReminders: true, hideDoneReminders: true, hiddenCalendars: "",
         didOnboard: false, lastSeenVersion: "",

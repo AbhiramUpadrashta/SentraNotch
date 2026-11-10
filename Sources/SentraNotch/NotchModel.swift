@@ -37,6 +37,7 @@ enum Peek: Equatable {
     case power(PowerEvent)
     case track                  // sneak peek of a new song
     case download(String, done: Bool)
+    case notification(String, String, alarm: Bool)
     case hello
 
     var priority: Int {
@@ -44,6 +45,7 @@ enum Peek: Equatable {
         case .hello: return 5
         case .hud: return 4
         case .device: return 3
+        case .notification(_, _, let alarm): return alarm ? 4 : 3
         case .power: return 2
         case .download: return 1
         case .track: return 0
@@ -76,6 +78,7 @@ final class NotchModel: ObservableObject {
         case .hud:
             if Prefs.bool(Prefs.hudInline) { s.width += 250 } else { s.height += 30; s.width += 120 }
         case .device: s.width += 260; s.height += 26
+        case .notification: s.width += 300; s.height += 42
         case .power: s.width += 210
         case .track:
             if Prefs.string(Prefs.sneakPeekStyle) == "inline" { s.width += 220 } else { s.height += 34; s.width += 60 }

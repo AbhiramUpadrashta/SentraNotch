@@ -265,6 +265,7 @@ struct DevicesPage: View {
     @AppStorage(Prefs.powerNotifications) var power = true
     @AppStorage(Prefs.lowBatteryAlert) var low = true
     @AppStorage(Prefs.downloads) var downloads = true
+    @AppStorage(Prefs.notifications) var notifs = true
     var body: some View {
         Section("Bluetooth (new in Sentra)") {
             Toggle("Pairing animation with battery", isOn: $bt)
@@ -278,6 +279,14 @@ struct DevicesPage: View {
             Toggle("Show percentage", isOn: $percent).disabled(!battery)
             Toggle("Plugged in / unplugged / full", isOn: $power)
             Toggle("Low battery warnings (20%, 10%, 5%)", isOn: $low)
+        }
+        Section("Notifications & alarms (new in Sentra)") {
+            Toggle("Show notifications and alarms in the notch", isOn: $notifs).onChange(of: notifs) { _, _ in NotificationWatcher.shared.start() }
+            if notifs && !SystemHUD.accessibilityGranted {
+                Button("Grant Accessibility permission") { SystemHUD.askAccessibility() }
+            }
+            Text("Messages, Mail, Calendar, Clock alarms and timers… the notch rings and shows the title for 4 seconds (6 for alarms). Needs Accessibility.")
+                .font(.caption).foregroundStyle(.secondary)
         }
         Section("Downloads") {
             Toggle("Show downloads in progress", isOn: $downloads).onChange(of: downloads) { _, v in v ? DownloadMonitor.shared.start() : DownloadMonitor.shared.stop() }

@@ -39,6 +39,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         CalendarModel.shared.start()
         if Prefs.bool(Prefs.didOnboard) { DownloadMonitor.shared.start() }
         HotKeys.shared.register()
+        NotificationWatcher.shared.start()
+        // Accessibility may be granted later in System Settings; pick it up when we become active again.
+        NotificationCenter.default.addObserver(forName: NSApplication.didBecomeActiveNotification, object: nil, queue: .main) { _ in
+            NotificationWatcher.shared.start()
+        }
+        Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { _ in
+            if AXIsProcessTrusted() { NotificationWatcher.shared.start() }
+        }
         updateStatusItem()
         NotificationCenter.default.addObserver(forName: UserDefaults.didChangeNotification, object: nil, queue: .main) { _ in
             Task { @MainActor in (NSApp.delegate as? AppDelegate)?.updateStatusItem() }
@@ -160,7 +168,7 @@ struct OnboardingView: View {
                     Task { await CalendarModel.shared.requestAccess(); calendar = CalendarModel.shared.eventsAllowed }
                 }
                 perm("camera.fill", "Camera", "The mirror, only when you open it", camera) { MirrorCamera.request { camera = $0 } }
-                perm("keyboard", "Accessibility", "Replace the volume & brightness HUD (optional)", access) {
+                perm("keyboard", "Accessibility", "Notifications & alarms in the notch, and the volume HUD", access) {
                     SystemHUD.askAccessibility()
                     DispatchQueue.main.asyncAfter(deadline: .now() + 4) { access = SystemHUD.accessibilityGranted }
                 }

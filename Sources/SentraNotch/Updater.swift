@@ -103,17 +103,36 @@ final class Updater {
             throw Fail(errorDescription: "The downloaded update looks damaged.")
         }
         _ = run("/usr/bin/xattr", ["-dr", "com.apple.quarantine", app.path])
-        let dest = Bundle.main.bundlePath
+        // Where to install: the app's real place. If macOS is running us from a quarantine copy
+        // (App Translocation) or from the disk image, install into /Applications instead.
+        var dest = Bundle.main.bundlePath
+        if dest.contains("/AppTranslocation/") || dest.hasPrefix("/Volumes/") || !dest.hasSuffix(".app") {
+            dest = "/Applications/Sentra Notch.app"
+        }
+        let log = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Logs/SentraNotch-update.log").path
         let script = """
-        while /bin/kill -0 "$1" 2>/dev/null; do /bin/sleep 0.2; done
-        /bin/rm -rf "$3.old"; /bin/mv "$3" "$3.old" && /usr/bin/ditto "$2" "$3" && /bin/rm -rf "$3.old" || { /bin/rm -rf "$3"; /bin/mv "$3.old" "$3"; }
+        exec >>"$4" 2>&1
+        echo "$(date) installing $2 -> $3"
+        i=0; while /bin/kill -0 "$1" 2>/dev/null && [ $i -lt 100 ]; do /bin/sleep 0.2; i=$((i+1)); done
+        /bin/kill -9 "$1" 2>/dev/null
+        swap() { /bin/rm -rf "$3.old"; if [ -e "$3" ]; then /bin/mv "$3" "$3.old" || return 1; fi
+                 if /usr/bin/ditto "$2" "$3"; then /bin/rm -rf "$3.old"; return 0; fi
+                 /bin/rm -rf "$3"; [ -e "$3.old" ] && /bin/mv "$3.old" "$3"; return 1; }
+        if swap "$@"; then echo replaced
+        else
+          echo "needs admin"
+          /usr/bin/osascript -e 'on run argv' -e 'do shell script "/bin/rm -rf " & quoted form of ((item 2 of argv) & ".old") & "; /bin/mv " & quoted form of (item 2 of argv) & " " & quoted form of ((item 2 of argv) & ".old") & " 2>/dev/null; /usr/bin/ditto " & quoted form of (item 1 of argv) & " " & quoted form of (item 2 of argv) & " && /bin/rm -rf " & quoted form of ((item 2 of argv) & ".old") & " && /usr/sbin/chown -R " & (item 3 of argv) & " " & quoted form of (item 2 of argv) with prompt "Sentra Notch needs your password to finish updating." with administrator privileges' -e 'end run' "$2" "$3" "$(/usr/bin/id -u)"
+        fi
+        /usr/bin/xattr -dr com.apple.quarantine "$3" 2>/dev/null
         /usr/bin/open "$3"
+        echo done
         """
+        let helper = work.appendingPathComponent("install.sh")
+        try script.write(to: helper, atomically: true, encoding: .utf8)
         let p = Process()
         p.executableURL = URL(fileURLWithPath: "/bin/sh")
-        p.arguments = ["-c", "/usr/bin/nohup /bin/sh -c '\(script.replacingOccurrences(of: "'", with: "'\\''"))' x \"$0\" \"$1\" \"$2\" >/dev/null 2>&1 &",
-                       String(ProcessInfo.processInfo.processIdentifier), app.path, dest]
-        guard dest.hasSuffix(".app") else { throw Fail(errorDescription: "Unexpected install location.") }
+        p.arguments = ["-c", "/usr/bin/nohup /bin/sh \"$0\" \"$1\" \"$2\" \"$3\" \"$4\" >/dev/null 2>&1 &",
+                       helper.path, String(ProcessInfo.processInfo.processIdentifier), app.path, dest, log]
         try p.run()
         UserDefaults.standard.set(r.version, forKey: pendingKey)
         NSApp.terminate(nil)
@@ -123,7 +142,7 @@ final class Updater {
         guard let want = UserDefaults.standard.string(forKey: pendingKey) else { return }
         UserDefaults.standard.removeObject(forKey: pendingKey)
         if Self.isNewer(want, than: currentVersion) {
-            alert("Sentra Notch \(want) didn’t finish installing", "Please download it from the website and drag it into Applications.")
+            alert("Sentra Notch \(want) didn’t finish installing", "Please try Check for Updates again, or download it from the website and drag it into Applications. Details: ~/Library/Logs/SentraNotch-update.log")
         }
     }
 
