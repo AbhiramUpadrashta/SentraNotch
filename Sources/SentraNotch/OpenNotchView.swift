@@ -46,6 +46,12 @@ struct Header: View {
             }
             Color.clear.frame(width: model.closedSize.width - 30, height: 1)
             Spacer()
+            if Prefs.bool(Prefs.showMirror) {
+                Button { withAnimation(.notchPeek) { model.cameraOn.toggle() } } label: {
+                    Image(systemName: model.cameraOn ? "camera.fill" : "camera").font(.system(size: 11.5)).frame(width: 26, height: 22)
+                        .foregroundStyle(model.cameraOn ? Color.sentraAccent : .white)
+                }.buttonStyle(HoverButtonStyle()).help("Mirror")
+            }
             if settingsButton {
                 Button { SettingsWindow.show() } label: {
                     Image(systemName: "gearshape.fill").font(.system(size: 12)).frame(width: 26, height: 22)
@@ -87,12 +93,12 @@ struct HoverButtonStyle: ButtonStyle {
 struct HomeView: View {
     @ObservedObject var music = MusicModel.shared
     @AppStorage(Prefs.showCalendar) private var calendar = true
-    @AppStorage(Prefs.showMirror) private var mirror = false
+    @EnvironmentObject var model: NotchModel
     var body: some View {
         HStack(spacing: 14) {
             if music.hasMedia { PlayerView() } else { NothingPlaying() }
             if calendar { CalendarPanel().frame(width: 200) }
-            if mirror { MirrorPanel() }
+            if model.cameraOn { MirrorPanel().transition(.scale.combined(with: .opacity)) }
         }
     }
 }

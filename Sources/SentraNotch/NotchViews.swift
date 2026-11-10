@@ -102,13 +102,26 @@ struct CompactMusicView: View {
     @ObservedObject var music = MusicModel.shared
     let closed: CGSize
     var body: some View {
-        HStack {
-            ArtworkView(size: closed.height - 10, radius: 5)
-            Spacer()
-            MusicWaves(playing: music.isPlaying, color: music.artworkColor, bars: 4)
-                .frame(width: 22, height: closed.height * 0.42)
+        VStack(spacing: 0) {
+            HStack {
+                ArtworkView(size: closed.height - 8, radius: 6)
+                    .shadow(color: music.artworkColor.opacity(music.isPlaying ? 0.6 : 0), radius: 6)
+                Spacer()
+                MusicWaves(playing: music.isPlaying, color: music.artworkColor, bars: 5)
+                    .frame(width: 26, height: closed.height * 0.5)
+            }
+            .frame(height: closed.height)
+            if music.showsLyricLine {
+                TimelineView(.periodic(from: .now, by: 0.4)) { tl in
+                    Text(music.currentLyric(at: tl.date) ?? "♪")
+                        .font(.system(size: 11.5, weight: .medium)).foregroundStyle(music.artworkColor)
+                        .lineLimit(1).frame(maxWidth: .infinity).padding(.horizontal, 10)
+                        .contentTransition(.opacity)
+                        .animation(.easeOut(duration: 0.25), value: music.currentLyric(at: tl.date))
+                }
+                .frame(height: 20)
+            }
         }
-        .frame(height: closed.height)
     }
 }
 
@@ -233,7 +246,7 @@ struct HUDPeek: View {
             SidesLayout(closed: closed) {
                 icon
             } right: {
-                if percent { Text("\(Int((muted ? 0 : value) * 100))").font(.system(size: 12, weight: .semibold, design: .rounded)).monospacedDigit().contentTransition(.numericText()) }
+                if percent { Text("\(Int((muted ? 0 : value) * 100))%").font(.system(size: 12, weight: .semibold, design: .rounded)).monospacedDigit().contentTransition(.numericText()).fixedSize() }
             } bottom: {
                 HUDBar(value: muted ? 0 : value).frame(height: 6).padding(.horizontal, 14)
             }
@@ -241,10 +254,11 @@ struct HUDPeek: View {
     }
     private var icon: some View {
         Image(systemName: kind.symbol(for: value, muted: muted))
-            .font(.system(size: 13, weight: .semibold))
+            .font(.system(size: 14, weight: .semibold))
             .contentTransition(.symbolEffect(.replace))
             .foregroundStyle(.white)
-            .frame(width: 22)
+            .fixedSize()
+            .frame(minWidth: 26)
     }
 }
 

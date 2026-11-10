@@ -36,7 +36,7 @@ enum Prefs {
     static let cornerScaling = "cornerScaling"
     static let idleFace = "idleFace"
     static let tileLabels = "tileLabels"
-    static let showMirror = "showMirror"
+    static let showMirror = "showMirror"                // camera button in the open notch
     static let mirrorCircle = "mirrorCircle"
     static let showCalendar = "showCalendar"
 
@@ -51,6 +51,7 @@ enum Prefs {
     static let sneakPeekSeconds = "sneakPeekSeconds"
     static let showShuffleRepeat = "showShuffleRepeat"
     static let lyrics = "lyrics"
+    static let lyricsClosed = "lyricsClosed"            // show the current lyric under the closed notch
     static let controlSlots = "controlSlots"            // comma separated
     static let hideWhenPaused = "hideWhenPaused"
 
@@ -99,12 +100,12 @@ enum Prefs {
         hideInFullscreen: "unlessPlaying", hideFromRecording: false, settingsInNotch: true, optionClickAction: "settings",
         gestures: true, closeGesture: true, gestureSensitivity: 0.5, helloAnimation: true, autoCheckUpdates: true,
         theme: "midnight", accent: "#7C9CFF", shadow: true, glow: true, cornerScaling: true, idleFace: true,
-        tileLabels: false, showMirror: false, mirrorCircle: false, showCalendar: true,
-        mediaSource: "auto", waveStyle: "waves", colorfulWaves: true, tintPlayer: true, sliderColor: "album",
-        sneakPeek: true, sneakPeekStyle: "standard", sneakPeekSeconds: 3.0, showShuffleRepeat: true, lyrics: false,
+        tileLabels: false, showMirror: true, mirrorCircle: false, showCalendar: true,
+        mediaSource: "auto", waveStyle: "bars", colorfulWaves: true, tintPlayer: true, sliderColor: "album",
+        sneakPeek: true, sneakPeekStyle: "standard", sneakPeekSeconds: 3.5, showShuffleRepeat: true, lyrics: false, lyricsClosed: true,
         controlSlots: "shuffle,previous,play,next,repeat", hideWhenPaused: false,
         hudReplace: false, hudInline: false, hudGradient: true, hudAccent: true, hudPercent: true, hudInOpenNotch: true,
-        bluetoothActivity: true, bluetoothSeconds: 3.0, bluetoothDisconnect: true,
+        bluetoothActivity: true, bluetoothSeconds: 3.5, bluetoothDisconnect: true,
         batteryIndicator: true, batteryPercent: true, powerNotifications: true, lowBatteryAlert: true,
         downloads: true,
         shelf: true, shelfOpensByDefault: true, copyOnDrag: false, autoRemoveShelf: false, expandedDrop: true,
@@ -130,8 +131,7 @@ struct Theme {
         switch Prefs.string(Prefs.theme) {
         case "glass":  return Theme(background: AnyShapeStyle(.ultraThinMaterial.opacity(0.98)), border: .white.opacity(0.10), glow: .clear)
         case "aurora": return Theme(background: AnyShapeStyle(Color.black), border: accent.opacity(0.55), glow: accent.opacity(0.45))
-        case "oled":   return Theme(background: AnyShapeStyle(Color.black), border: .clear, glow: .clear)
-        default:       return Theme(background: AnyShapeStyle(Color(red: 0.02, green: 0.02, blue: 0.03)), border: .white.opacity(0.04), glow: .clear)
+        default:       return Theme(background: AnyShapeStyle(Color.black), border: .clear, glow: .clear)   // midnight & OLED: pure notch black
         }
     }
 }

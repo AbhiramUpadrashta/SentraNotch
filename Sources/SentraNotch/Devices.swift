@@ -90,7 +90,7 @@ final class BluetoothMonitor: NSObject {
                 model.peek = .device(DeviceEventRefresh.keepID(cur, with: merged))
                 return
             }
-            model.show(.device(ev), for: min(3, max(2, Prefs.double(Prefs.bluetoothSeconds))))
+            model.show(.device(ev), for: min(4, max(3, Prefs.double(Prefs.bluetoothSeconds))))
         }
     }
 
@@ -210,13 +210,13 @@ final class PowerMonitor: ObservableObject {
         minutesLeft = tte > 0 ? tte : nil
 
         if announce && Prefs.bool(Prefs.powerNotifications) {
-            if newAC && !onAC { NotchModel.shared.show(.power(.pluggedIn(newLevel)), for: 3) }
-            else if !newAC && onAC { NotchModel.shared.show(.power(.unplugged(newLevel)), for: 3) }
-            else if newAC && newLevel >= 100 && level < 100 { NotchModel.shared.show(.power(.full), for: 3) }
+            if newAC && !onAC { NotchModel.shared.show(.power(.pluggedIn(newLevel)), for: 3.5) }
+            else if !newAC && onAC { NotchModel.shared.show(.power(.unplugged(newLevel)), for: 3.5) }
+            else if newAC && newLevel >= 100 && level < 100 { NotchModel.shared.show(.power(.full), for: 3.5) }
         }
         if announce && Prefs.bool(Prefs.lowBatteryAlert) && !newAC {
             for t in [20, 10, 5] where newLevel <= t && !warnedLow.contains(t) {
-                warnedLow.insert(t); NotchModel.shared.show(.power(.low(newLevel)), for: 3); break
+                warnedLow.insert(t); NotchModel.shared.show(.power(.low(newLevel)), for: 4); break
             }
         }
         if newAC { warnedLow.removeAll() }

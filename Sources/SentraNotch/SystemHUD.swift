@@ -145,7 +145,7 @@ final class SystemHUD {
         let v = Volume.level, m = Volume.muted
         guard abs(v - lastVolume) > 0.001 || m != lastMuted else { return }
         lastVolume = v; lastMuted = m
-        NotchModel.shared.show(.hud(.volume, v, muted: m), for: 2)
+        NotchModel.shared.show(.hud(.volume, v, muted: m), for: 3)
     }
 
     private func poll() {
@@ -153,12 +153,12 @@ final class SystemHUD {
         if let b = Brightness.level, abs(b - lastBrightness) > 0.004 {
             let first = lastBrightness < 0
             lastBrightness = b
-            if !first { NotchModel.shared.show(.hud(.brightness, b, muted: false), for: 2) }
+            if !first { NotchModel.shared.show(.hud(.brightness, b, muted: false), for: 3) }
         }
         if let k = KeyboardLight.level, abs(k - lastKeyboard) > 0.004 {
             let first = lastKeyboard < 0
             lastKeyboard = k
-            if !first { NotchModel.shared.show(.hud(.keyboard, k, muted: false), for: 2) }
+            if !first { NotchModel.shared.show(.hud(.keyboard, k, muted: false), for: 3) }
         }
     }
 
@@ -223,7 +223,7 @@ final class SystemHUD {
                 Brightness.level = nv
                 lastBrightness = nv
                 suppressPollUntil = Date().addingTimeInterval(0.3)
-                NotchModel.shared.show(.hud(.brightness, nv, muted: false), for: 2)
+                NotchModel.shared.show(.hud(.brightness, nv, muted: false), for: 3)
             }
         case 21, 22, 23:
             if let k = KeyboardLight.level {
@@ -231,7 +231,7 @@ final class SystemHUD {
                 KeyboardLight.level = nv
                 lastKeyboard = nv
                 suppressPollUntil = Date().addingTimeInterval(0.3)
-                NotchModel.shared.show(.hud(.keyboard, nv, muted: false), for: 2)
+                NotchModel.shared.show(.hud(.keyboard, nv, muted: false), for: 3)
             }
         default: break
         }

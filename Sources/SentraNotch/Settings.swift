@@ -142,14 +142,14 @@ struct AppearancePage: View {
     @AppStorage(Prefs.cornerScaling) var corners = true
     @AppStorage(Prefs.idleFace) var face = true
     @AppStorage(Prefs.settingsInNotch) var gear = true
-    @AppStorage(Prefs.showMirror) var mirror = false
+    @AppStorage(Prefs.showMirror) var mirror = true
     @AppStorage(Prefs.mirrorCircle) var circle = false
     let swatches = ["#7C9CFF", "#FF8FB1", "#5FD9B6", "#FFB36B", "#A78BFA", "#F5F5F7"]
 
     var body: some View {
         Section("Theme") {
             Picker("Notch theme", selection: $theme) {
-                Text("Midnight").tag("midnight"); Text("Glass").tag("glass"); Text("Aurora glow").tag("aurora"); Text("Pure OLED").tag("oled")
+                Text("Notch black").tag("midnight"); Text("Glass").tag("glass"); Text("Aurora glow").tag("aurora")
             }.pickerStyle(.segmented)
             HStack {
                 Text("Accent colour")
@@ -170,7 +170,7 @@ struct AppearancePage: View {
             Toggle("Settings button in the notch", isOn: $gear)
         }
         Section("Mirror") {
-            Toggle("Show the camera mirror", isOn: $mirror)
+            Toggle("Camera button in the open notch (opens only when you click it)", isOn: $mirror)
             Toggle("Circle shape", isOn: $circle).disabled(!mirror)
         }
     }
@@ -184,9 +184,10 @@ struct MediaPage: View {
     @AppStorage(Prefs.sliderColor) var slider = "album"
     @AppStorage(Prefs.sneakPeek) var peek = true
     @AppStorage(Prefs.sneakPeekStyle) var peekStyle = "standard"
-    @AppStorage(Prefs.sneakPeekSeconds) var seconds = 3.0
+    @AppStorage(Prefs.sneakPeekSeconds) var seconds = 3.5
     @AppStorage(Prefs.showShuffleRepeat) var shuffle = true
     @AppStorage(Prefs.lyrics) var lyrics = false
+    @AppStorage(Prefs.lyricsClosed) var lyricsClosed = true
     @AppStorage(Prefs.hideWhenPaused) var hidePaused = false
     @AppStorage(Prefs.controlSlots) var slots = "shuffle,previous,play,next,repeat"
 
@@ -213,13 +214,14 @@ struct MediaPage: View {
                 Text("◀◀ · ▶ · ▶▶ · Output").tag("previous,play,next,airplay")
             }
             Toggle("Synced lyrics (from lrclib.net)", isOn: $lyrics)
+            Toggle("Show the current lyric under the closed notch", isOn: $lyricsClosed).disabled(!lyrics)
             Toggle("Hide music from the closed notch when paused", isOn: $hidePaused)
-            Text("When music stops, the notch goes back to normal after 10 seconds.").font(.caption).foregroundStyle(.secondary)
+            Text("When music stops, the notch goes back to normal after 15 seconds. The last song stays in the open notch so you can press play again.").font(.caption).foregroundStyle(.secondary)
         }
         Section("Sneak peek") {
             Toggle("Show the song when it changes", isOn: $peek)
             Picker("Style", selection: $peekStyle) { Text("Below the notch").tag("standard"); Text("Beside the notch").tag("inline") }.disabled(!peek)
-            Slider(value: $seconds, in: 2...3, step: 0.5) { Text("Show for \(String(format: "%.1f", seconds)) s") }.disabled(!peek)
+            Slider(value: $seconds, in: 3...4, step: 0.5) { Text("Show for \(String(format: "%.1f", seconds)) s") }.disabled(!peek)
         }
     }
 }
@@ -252,7 +254,7 @@ struct HUDPage: View {
 struct DevicesPage: View {
     @AppStorage(Prefs.bluetoothActivity) var bt = true
     @AppStorage(Prefs.bluetoothDisconnect) var disconnect = true
-    @AppStorage(Prefs.bluetoothSeconds) var seconds = 3.0
+    @AppStorage(Prefs.bluetoothSeconds) var seconds = 3.5
     @AppStorage(Prefs.batteryIndicator) var battery = true
     @AppStorage(Prefs.batteryPercent) var percent = true
     @AppStorage(Prefs.powerNotifications) var power = true
@@ -262,7 +264,7 @@ struct DevicesPage: View {
         Section("Bluetooth (new in Sentra)") {
             Toggle("Pairing animation with battery", isOn: $bt)
             Toggle("Also show when a device disconnects", isOn: $disconnect).disabled(!bt)
-            Slider(value: $seconds, in: 2...3, step: 0.5) { Text("Show for \(String(format: "%.1f", seconds)) s") }.disabled(!bt)
+            Slider(value: $seconds, in: 3...4, step: 0.5) { Text("Show for \(String(format: "%.1f", seconds)) s") }.disabled(!bt)
             Text("Mouse, keyboard, trackpad, AirPods, headphones, speakers and game controllers. The icon spins for 2 seconds, then the battery appears.")
                 .font(.caption).foregroundStyle(.secondary)
         }

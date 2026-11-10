@@ -44,7 +44,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             Task { @MainActor in (NSApp.delegate as? AppDelegate)?.updateStatusItem() }
         }
         if Prefs.bool(Prefs.helloAnimation) {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { NotchModel.shared.show(.hello, for: 2.5) }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { NotchModel.shared.show(.hello, for: 3) }
         }
         if !Prefs.bool(Prefs.didOnboard) { DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { Onboarding.show() } }
         Updater.shared.checkInBackgroundIfDue()
@@ -101,7 +101,7 @@ final class HotKeys {
         Shortcut(id: 1, key: kVK_ANSI_N, mods: cmdKey | optionKey, label: "⌥⌘N  Open / close the notch") { NotchModel.shared.toggle() },
         Shortcut(id: 2, key: kVK_ANSI_S, mods: cmdKey | optionKey, label: "⌥⌘S  Open the shelf") { NotchModel.shared.open(.shelf) },
         Shortcut(id: 3, key: kVK_ANSI_P, mods: cmdKey | optionKey, label: "⌥⌘P  Show what's playing") {
-            if MusicModel.shared.hasMedia { NotchModel.shared.show(.track, for: 3) }
+            if MusicModel.shared.hasMedia { NotchModel.shared.show(.track, for: 3.5) }
         },
     ]
     private var refs: [EventHotKeyRef?] = []

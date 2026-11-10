@@ -60,6 +60,7 @@ final class NotchModel: ObservableObject {
     @Published var peek: Peek?
     @Published var hidden = false            // e.g. fullscreen video
     @Published var hovering = false
+    @Published var cameraOn = false        // camera only opens when the user clicks its button
     @Published var dropTargeted = false
     /// Size of the physical notch (or the fake one on displays without a notch).
     @Published var closedSize = CGSize(width: 200, height: 32)
@@ -73,15 +74,18 @@ final class NotchModel: ObservableObject {
         var s = closedSize
         switch peek {
         case .hud:
-            if Prefs.bool(Prefs.hudInline) { s.width += 200 } else { s.height += 30; s.width += 40 }
-        case .device: s.width += 240; s.height += 26
-        case .power: s.width += 150
+            if Prefs.bool(Prefs.hudInline) { s.width += 250 } else { s.height += 30; s.width += 120 }
+        case .device: s.width += 260; s.height += 26
+        case .power: s.width += 210
         case .track:
             if Prefs.string(Prefs.sneakPeekStyle) == "inline" { s.width += 220 } else { s.height += 34; s.width += 60 }
         case .download: s.width += 140
         case .hello: s.width += 120; s.height += 20
         case nil:
-            if MusicModel.shared.showsCompact { s.width += 72 }
+            if MusicModel.shared.showsCompact {
+                s.width += 110
+                if MusicModel.shared.showsLyricLine { s.height += 22; s.width += 60 }
+            }
             else if PowerMonitor.shared.showsCompact { s.width += 72 }
         }
         return s
@@ -96,7 +100,7 @@ final class NotchModel: ObservableObject {
 
     func close() {
         guard isOpen else { return }
-        withAnimation(.notchClose) { isOpen = false }
+        withAnimation(.notchClose) { isOpen = false; cameraOn = false }
         tab = Prefs.bool(Prefs.shelfOpensByDefault) && !ShelfModel.shared.items.isEmpty ? .shelf : .home
     }
 
@@ -109,7 +113,7 @@ final class NotchModel: ObservableObject {
         peekTimer?.invalidate()
         if isOpen {
             // In the open notch, HUDs show in the header; others are skipped.
-            if case .hud = p, Prefs.bool(Prefs.hudInOpenNotch) { openHUD = p; scheduleOpenHUDClear(); }
+            if case .hud = p, Prefs.bool(Prefs.hudInOpenNotch) { openHUD = p; scheduleOpenHUDClear() }
             return
         }
         withAnimation(.notchPeek) { peek = p }

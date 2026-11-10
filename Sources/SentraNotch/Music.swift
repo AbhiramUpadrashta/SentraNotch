@@ -45,6 +45,7 @@ final class MusicModel: ObservableObject {
     private var lastTrackKey = ""
 
     var hasMedia: Bool { !title.isEmpty }
+    var showsLyricLine: Bool { showsCompact && isPlaying && Prefs.bool(Prefs.lyrics) && Prefs.bool(Prefs.lyricsClosed) && !lyrics.isEmpty }
     var showsCompact: Bool { hasMedia && (isPlaying || (recentlyActive && !Prefs.bool(Prefs.hideWhenPaused))) }
     var appIcon: NSImage? {
         guard !bundleID.isEmpty, let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) else { return nil }
@@ -81,7 +82,8 @@ final class MusicModel: ObservableObject {
         let newTitle = i["title"] as? String ?? ""
         let newArtist = i["artist"] as? String ?? ""
         let key = newTitle + "|" + newArtist
-        if newTitle.isEmpty { clear(); return }
+        // Nothing playing any more: keep the last track (history) until Sentra quits, just mark it stopped.
+        if newTitle.isEmpty { if isPlaying { isPlaying = false; markActive() }; return }
         let wasPlaying = isPlaying
         title = newTitle; artist = newArtist
         album = i["album"] as? String ?? ""
@@ -128,7 +130,7 @@ final class MusicModel: ObservableObject {
         recentlyActive = true
         idleTimer?.invalidate()
         if !isPlaying {
-            idleTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: false) { [weak self] _ in
+            idleTimer = Timer.scheduledTimer(withTimeInterval: 15, repeats: false) { [weak self] _ in
                 Task { @MainActor in withAnimation(.notchClose) { self?.recentlyActive = false } }
             }
         }
@@ -207,7 +209,7 @@ extension NSImage {
         // Keep it vivid enough to read on black.
         var h: CGFloat = 0, s: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
         c.getHue(&h, saturation: &s, brightness: &b, alpha: &a)
-        c = NSColor(hue: h, saturation: min(1, s * 1.2), brightness: max(0.65, b), alpha: 1)
+        c = NSColor(hue: h, saturation: s < 0.12 ? s : min(1, max(0.55, s * 1.35)), brightness: max(0.78, b), alpha: 1)
         return c
     }
 }
