@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sentra Notch — Your notch, now intelligent | Free macOS notch app</title>
+<meta name="description" content="Sentra Notch turns the MacBook notch into a live, animated control centre: music with waves, volume & brightness HUD, Bluetooth pairing with battery, charging, calendar, shelf with AirDrop and more. Free by Bubbles Aro.">
+<link rel="canonical" href="https://bubbles.foo.ng/SentraNotch/">
+<link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon-180.png">
+<meta property="og:title" content="Sentra Notch — Your notch, now intelligent">
+<meta property="og:description" content="A free, beautifully animated notch app for macOS by Bubbles Aro.">
+<meta property="og:image" content="https://bubbles.foo.ng/SentraNotch/media/hero.jpg">
+<meta name="theme-color" content="#07080f">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Sentra Notch","operatingSystem":"macOS 14 or later","applicationCategory":"UtilitiesApplication","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"downloadUrl":"https://github.com/AbhiramUpadrashta/SentraNotch/releases/latest/download/SentraNotch.dmg","license":"https://opensource.org/licenses/MIT","publisher":{"@type":"Organization","name":"Bubbles Aro","url":"https://bubbles.foo.ng/"}}</script>
+<style>
+:root{--bg:#06070d;--bg2:#0d0f1c;--line:rgba(255,255,255,.08);--text:#eef0ff;--muted:#9aa2c7;--blue:#7c9cff;--pink:#ff8fb1;--mint:#5fd9b6;--indigo:#4659d8}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:Inter,system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+.grad{background:linear-gradient(100deg,var(--blue),var(--pink) 55%,var(--mint));-webkit-background-clip:text;background-clip:text;color:transparent}
+/* aurora background */
+.aurora{position:fixed;inset:0;z-index:-2;pointer-events:none;overflow:hidden}
+.aurora i{position:absolute;border-radius:50%;filter:blur(90px);opacity:.38;animation:drift 22s ease-in-out infinite alternate}
+.aurora i:nth-child(1){width:620px;height:620px;background:var(--indigo);left:-160px;top:-180px}
+.aurora i:nth-child(2){width:520px;height:520px;background:#b0306a;right:-160px;top:120px;animation-duration:26s;opacity:.25}
+.aurora i:nth-child(3){width:520px;height:520px;background:#118a6a;left:30%;top:70%;animation-duration:30s;opacity:.18}
+@keyframes drift{to{transform:translate(120px,80px) scale(1.15)}}
+.grid-bg{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.35;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:64px 64px;mask-image:radial-gradient(ellipse at 50% 0,#000 10%,transparent 70%)}
+/* nav */
+nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);background:rgba(6,7,13,.6);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;height:64px;gap:22px}
+.brand{display:flex;gap:10px;align-items:center;font-weight:800;font-size:18px;letter-spacing:-.02em}
+.brand img{width:30px;height:30px;border-radius:8px}
+.links{margin-left:auto;display:flex;gap:22px;font-size:14px;color:var(--muted)}
+.links a:hover{color:var(--text)}
+@media(max-width:820px){.links{display:none}}
+.btn{display:inline-flex;align-items:center;gap:10px;font-weight:600;font-size:15px;border-radius:14px;padding:13px 22px;transition:transform .15s,box-shadow .25s;white-space:nowrap}
+.btn:hover{transform:translateY(-2px)}
+.btn-p{background:linear-gradient(135deg,var(--blue),var(--indigo));color:#fff;box-shadow:0 12px 40px -12px rgba(124,156,255,.9),inset 0 1px 0 rgba(255,255,255,.25)}
+.btn-g{background:rgba(255,255,255,.06);border:1px solid var(--line)}
+.btn-s{padding:9px 16px;font-size:13.5px;border-radius:11px}
+.btn svg{width:18px;height:18px}
+/* hero */
+.hero{text-align:center;padding:80px 0 40px;position:relative}
+.pill{display:inline-flex;gap:8px;align-items:center;font-size:13px;color:var(--muted);border:1px solid var(--line);background:rgba(255,255,255,.04);padding:6px 14px 6px 6px;border-radius:99px;margin-bottom:24px}
+.pill b{background:linear-gradient(135deg,var(--pink),var(--blue));color:#fff;border-radius:99px;padding:2px 10px;font-size:11.5px}
+h1{font-size:clamp(42px,7.4vw,86px);line-height:1.02;letter-spacing:-.05em;font-weight:800;max-width:940px;margin:0 auto}
+.sub{font-size:clamp(16px,2vw,20px);color:var(--muted);max-width:660px;margin:22px auto 0}
+.ctas{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:34px}
+.meta{margin-top:14px;font-size:13px;color:#6f769a}
+/* mac stage */
+.stage{max-width:1060px;margin:60px auto 0;position:relative}
+.mac{border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,.14);box-shadow:0 70px 140px -40px rgba(0,0,0,.9),0 0 0 10px rgba(255,255,255,.02),0 0 120px -30px rgba(124,156,255,.4)}
+.wall{height:480px;position:relative;background:radial-gradient(700px 360px at 18% 100%,#ff5ea8 0,transparent 60%),radial-gradient(760px 420px at 85% 75%,#4f6bed 0,transparent 60%),radial-gradient(640px 420px at 50% 10%,#23b4ff 0,transparent 60%),linear-gradient(160deg,#141a46,#2a0f4d)}
+@media(max-width:700px){.wall{height:340px}}
+.menubar{position:absolute;inset:0 0 auto 0;height:32px;display:flex;align-items:center;padding:0 14px;font-size:13px;font-weight:500;background:rgba(10,10,30,.25);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px)}
+.menubar .r{margin-left:auto;display:flex;gap:14px;opacity:.9}
+@media(max-width:700px){.menubar .l span,.menubar .r .x{display:none}}
+/* the notch */
+.notch{position:absolute;left:50%;top:0;transform:translateX(-50%);background:#000;color:#fff;border-radius:0 0 14px 14px;width:200px;height:32px;transition:width .55s cubic-bezier(.3,1.35,.5,1),height .55s cubic-bezier(.3,1.35,.5,1),border-radius .5s;overflow:hidden;z-index:5;box-shadow:0 10px 30px -10px rgba(0,0,0,.6)}
+.notch::before,.notch::after{content:"";position:absolute;top:0;width:10px;height:10px;background:radial-gradient(circle at 0 100%,transparent 9.5px,#000 10px)}
+.notch.open{border-radius:0 0 30px 30px}
+.n-row{position:absolute;inset:0 0 auto 0;height:32px;display:flex;align-items:center;justify-content:space-between;padding:0 10px}
+.n-art{width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,var(--pink),#7a2bff);flex:none;transition:all .5s}
+.n-bottom{position:absolute;left:0;right:0;top:32px;padding:4px 16px;text-align:center;font-size:12.5px;font-weight:600;opacity:0;transition:opacity .35s .15s}
+.show .n-bottom{opacity:1}
+.n-sub{color:#aab;font-weight:500;margin-left:6px}
+.waves{width:26px;height:16px}
+.bar{height:6px;border-radius:9px;background:rgba(255,255,255,.15);overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,#9db0ff,var(--blue));box-shadow:0 0 10px var(--blue);transition:width .25s}
+.spin{animation:spin 2s cubic-bezier(.45,.05,.3,1)}
+@keyframes spin{to{transform:rotateY(720deg)}}
+.ring{width:22px;height:22px}
+.n-open{position:absolute;inset:36px 18px 14px;display:flex;gap:16px;opacity:0;transition:opacity .3s .2s;text-align:left}
+.open .n-open{opacity:1}
+.big-art{width:94px;height:94px;border-radius:16px;background:linear-gradient(135deg,var(--pink),#7a2bff 60%,var(--blue));flex:none;box-shadow:0 10px 40px -6px rgba(255,94,168,.7);position:relative}
+.big-art::after{content:"♪";position:absolute;inset:0;display:grid;place-items:center;font-size:34px;opacity:.8}
+.pl h4{font-size:15px}.pl p{font-size:12.5px;color:var(--pink)}
+.scr{height:4px;background:rgba(255,255,255,.15);border-radius:9px;margin:10px 0 4px;position:relative}
+.scr i{position:absolute;inset:0 auto 0 0;width:38%;background:var(--pink);border-radius:9px;animation:prog 12s linear infinite}
+@keyframes prog{from{width:18%}to{width:64%}}
+.ctl{display:flex;gap:18px;justify-content:center;font-size:16px;margin-top:8px;opacity:.95}
+.cal{width:170px;border-left:1px solid rgba(255,255,255,.08);padding-left:14px;font-size:11.5px}
+.cal b{display:block;font-size:12px;margin-bottom:6px;color:var(--blue)}
+.ev{display:flex;gap:7px;margin-bottom:6px}.ev i{width:3px;border-radius:2px;flex:none}
+.ev small{display:block;color:#889;font-size:10.5px}
+@media(max-width:700px){.cal{display:none}}
+.dock{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);display:flex;gap:10px;padding:9px 12px;border-radius:20px;background:rgba(255,255,255,.14);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.18)}
+.dock i{width:44px;height:44px;border-radius:12px;display:block}
+@media(max-width:700px){.dock i{width:30px;height:30px}}
+.caption{position:absolute;left:16px;bottom:16px;font:600 12px/1 ui-monospace,monospace;background:rgba(0,0,0,.45);padding:7px 11px;border-radius:9px;color:#cfd4ff;backdrop-filter:blur(8px)}
+.tabs{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:22px}
+.tabs button{font:600 13px Inter;color:var(--muted);background:rgba(255,255,255,.05);border:1px solid var(--line);padding:8px 14px;border-radius:99px;cursor:pointer;transition:.2s}
+.tabs button.on,.tabs button:hover{color:#fff;background:rgba(124,156,255,.18);border-color:rgba(124,156,255,.5)}
+/* sections */
+section{padding:110px 0}
+.eyebrow{font:700 12.5px/1 Inter;letter-spacing:.16em;text-transform:uppercase;color:var(--mint);margin-bottom:14px}
+h2{font-size:clamp(32px,4.6vw,54px);line-height:1.06;letter-spacing:-.04em;font-weight:800}
+.lead{color:var(--muted);font-size:18px;max-width:660px;margin-top:14px}
+.center{text-align:center}.center .lead{margin-inline:auto}
+.feat{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:56px}
+@media(max-width:960px){.feat{grid-template-columns:1fr 1fr}}@media(max-width:620px){.feat{grid-template-columns:1fr}}
+.card{position:relative;border-radius:22px;padding:22px;background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.02));border:1px solid var(--line);overflow:hidden;transition:transform .3s,border-color .3s}
+.card:hover{transform:translateY(-4px);border-color:rgba(124,156,255,.45)}
+.card::before{content:"";position:absolute;inset:-1px;border-radius:22px;padding:1px;background:linear-gradient(135deg,rgba(124,156,255,.5),transparent 40%,transparent 60%,rgba(255,143,177,.4));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:.3s}
+.card:hover::before{opacity:1}
+.card h3{font-size:18px;letter-spacing:-.02em;margin:16px 0 6px}
+.card p{color:var(--muted);font-size:14.5px}
+.mini{height:130px;border-radius:16px;background:linear-gradient(150deg,#1b2160,#3a1663 60%,#6a2153);position:relative;overflow:hidden}
+.mini .notch{position:absolute;transform:translateX(-50%) scale(.9);transform-origin:top center}
+.new{position:absolute;top:16px;right:16px;font:700 10.5px Inter;letter-spacing:.08em;background:linear-gradient(135deg,var(--pink),var(--blue));padding:4px 9px;border-radius:99px}
+/* spotlight */
+.spot{display:grid;grid-template-columns:1fr 1.1fr;gap:56px;align-items:center}
+@media(max-width:900px){.spot{grid-template-columns:1fr}}
+.spot .mac .wall{height:300px}
+.bul{list-style:none;margin-top:22px;display:grid;gap:12px}
+.bul li{display:flex;gap:12px;color:var(--muted)}
+.bul li b{color:var(--text)}
+.bul .d{flex:none;width:24px;height:24px;border-radius:8px;display:grid;place-items:center;background:rgba(124,156,255,.18);color:var(--blue);font-size:13px}
+/* video */
+.vid{max-width:1000px;margin:50px auto 0;border-radius:22px;overflow:hidden;border:1px solid var(--line);box-shadow:0 50px 120px -40px rgba(124,156,255,.5)}
+.vid video{display:block;width:100%;height:auto;background:#000}
+.gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:22px}
+.gallery figure{border-radius:16px;overflow:hidden;border:1px solid var(--line);background:#000}
+.gallery img{display:block;width:100%}
+.gallery figcaption{font-size:13px;color:var(--muted);padding:10px 12px}
+@media(max-width:800px){.gallery{grid-template-columns:1fr}}
+/* themes */
+.themes{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:46px}
+@media(max-width:800px){.themes{grid-template-columns:1fr 1fr}}
+.th{border-radius:18px;border:1px solid var(--line);padding:16px;text-align:center;cursor:pointer;transition:.25s}
+.th:hover,.th.on{border-color:var(--blue);transform:translateY(-3px)}
+.th .sw{height:64px;border-radius:12px;margin-bottom:10px;position:relative;overflow:hidden}
+.th .sw::after{content:"";position:absolute;left:50%;top:0;transform:translateX(-50%);width:90px;height:22px;border-radius:0 0 12px 12px;background:var(--n,#000);box-shadow:var(--g,none);border:var(--b,0)}
+/* steps */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:50px;counter-reset:s}
+@media(max-width:860px){.steps{grid-template-columns:1fr}}
+.step{border-radius:20px;border:1px solid var(--line);padding:24px;background:rgba(255,255,255,.03)}
+.step::before{counter-increment:s;content:counter(s);display:grid;place-items:center;width:36px;height:36px;border-radius:11px;font-weight:800;background:linear-gradient(135deg,var(--blue),var(--indigo));margin-bottom:14px}
+.step p{color:var(--muted);font-size:14.5px}
+code,.code{font-family:ui-monospace,SFMono-Regular,monospace;font-size:12.5px}
+.code{display:block;background:#020308;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:12px;color:#cfd4ff;overflow-x:auto;white-space:pre}
+details{border:1px solid var(--line);border-radius:14px;padding:4px 20px;background:rgba(255,255,255,.03);margin-top:10px}
+summary{cursor:pointer;list-style:none;padding:15px 0;font-weight:600;display:flex;justify-content:space-between}
+summary::after{content:"+";color:var(--muted);font-size:20px;transition:.2s}
+details[open] summary::after{transform:rotate(45deg)}
+details p{color:var(--muted);padding-bottom:16px;font-size:15px}
+.faq{max-width:820px;margin:40px auto 0}
+.cta{border-radius:30px;padding:70px 26px;text-align:center;border:1px solid var(--line);background:radial-gradient(600px 300px at 50% 0,rgba(124,156,255,.35),transparent 70%),var(--bg2);position:relative;overflow:hidden}
+footer{padding:46px 0 60px;border-top:1px solid var(--line);color:var(--muted);font-size:14px}
+footer .wrap{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;align-items:center}
+.pby{display:inline-flex;gap:8px;align-items:center;padding:6px 12px 6px 6px;border-radius:99px;border:1px solid var(--line);background:rgba(255,255,255,.04)}
+.pby img{width:22px;height:22px;border-radius:6px}
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .8s,transform .8s}
+.reveal.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div class="aurora"><i></i><i></i><i></i></div><div class="grid-bg"></div>
+<nav><div class="wrap">
+  <a class="brand" href="#"><img src="icon-180.png" alt="">Sentra Notch</a>
+  <div class="links"><a href="#features">Features</a><a href="#pairing">Pairing</a><a href="#video">Watch</a><a href="#themes">Themes</a><a href="#install">Install</a><a href="#faq">FAQ</a></div>
+  <a class="btn btn-p btn-s" href="https://github.com/AbhiramUpadrashta/SentraNotch/releases/latest/download/SentraNotch.dmg">Download</a>
+</div></nav>
+
+<header class="hero"><div class="wrap">
+  <div class="pill"><b>NEW</b> Bluetooth pairing animations · free for macOS</div>
+  <h1>Your notch,<br><span class="grad">now intelligent.</span></h1>
+  <p class="sub">Sentra Notch turns the MacBook notch into a living control centre — music with flowing waves, smooth volume &amp; brightness, devices that announce themselves, your day, your files. Hover and it opens.</p>
+  <div class="ctas">
+    <a class="btn btn-p" href="https://github.com/AbhiramUpadrashta/SentraNotch/releases/latest/download/SentraNotch.dmg"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M16.4 12.6c0-2.6 2.1-3.8 2.2-3.9-1.2-1.8-3.1-2-3.7-2-1.6-.2-3.1.9-3.9.9-.8 0-2-.9-3.4-.9-1.7 0-3.3 1-4.2 2.6-1.8 3.1-.5 7.8 1.3 10.3.9 1.2 1.9 2.6 3.2 2.6 1.3-.1 1.8-.8 3.3-.8 1.6 0 2 .8 3.4.8 1.4 0 2.3-1.3 3.1-2.5 1-1.4 1.4-2.8 1.4-2.9 0 0-2.7-1-2.7-4.2zM13.9 5c.7-.9 1.2-2 1-3.2-1 0-2.3.7-3 1.6-.7.8-1.2 2-1.1 3.1 1.2.1 2.3-.6 3.1-1.5z"/></svg>Download for Mac</a>
+    <a class="btn btn-g" href="#video">▶ Watch it in action</a>
+  </div>
+  <p class="meta" id="ver">Free · macOS 14 Sonoma or later · Apple Silicon &amp; Intel · MIT licensed</p>
+
+  <div class="stage reveal">
+    <div class="mac"><div class="wall">
+      <div class="menubar"><div class="l"> <b>Finder</b> <span>&nbsp; File &nbsp; Edit &nbsp; View &nbsp; Go</span></div><div class="r"><span class="x">⌁</span><span>✱</span><span>◐</span><span id="clock"></span></div></div>
+      <div class="notch" id="notch"></div>
+      <div class="dock"><i style="background:linear-gradient(135deg,#4facfe,#00f2fe)"></i><i style="background:linear-gradient(135deg,#f093fb,#f5576c)"></i><i style="background:linear-gradient(135deg,#43e97b,#38f9d7)"></i><i style="background:linear-gradient(135deg,#fa709a,#fee140)"></i><i style="background:linear-gradient(135deg,#7c9cff,#4659d8)"></i></div>
+      <div class="caption" id="cap">music</div>
+    </div></div>
+    <div class="tabs" id="tabs"></div>
+  </div>
+</div></header>
+
+<section id="features"><div class="wrap">
+  <div class="center reveal"><div class="eyebrow">Everything, in one place</div><h2>Small notch. <span class="grad">Big brain.</span></h2>
+  <p class="lead">Every live activity you love — plus new ones — tuned to animate in 2–3 seconds and get out of your way.</p></div>
+  <div class="feat" id="feat"></div>
+</div></section>
+
+<section id="pairing" style="padding-top:20px"><div class="wrap spot">
+  <div class="reveal">
+    <div class="eyebrow">New in Sentra</div>
+    <h2>Devices that <span class="grad">say hello.</span></h2>
+    <p class="lead">Turn on your Magic Mouse or pop open your AirPods — the notch spins its icon for two seconds, then shows exactly how much battery is left.</p>
+    <ul class="bul">
+      <li><span class="d">🖱</span><span><b>Mice, keyboards &amp; trackpads</b> — battery read straight from the device, with a charging bolt when plugged in.</span></li>
+      <li><span class="d">🎧</span><span><b>AirPods, Beats &amp; headphones</b> — left, right and case levels.</span></li>
+      <li><span class="d">🎮</span><span><b>Speakers &amp; game controllers</b> — the right icon for every device, and a quiet note when it disconnects.</span></li>
+    </ul>
+  </div>
+  <div class="reveal"><div class="mac"><div class="wall" style="height:300px"><div class="menubar"><div class="r"><span id="clock2"></span></div></div><div class="notch" id="pairNotch"></div></div></div></div>
+</div></section>
+
+<section id="video" style="padding-top:20px"><div class="wrap">
+  <div class="center reveal"><div class="eyebrow">Watch</div><h2>See it <span class="grad">move.</span></h2><p class="lead">Music, volume, brightness, pairing, charging and the open notch — recorded straight from the demo.</p></div>
+  <div class="vid reveal"><video src="media/demo.mp4" poster="media/hero.jpg" autoplay muted loop playsinline controls></video></div>
+  <div class="gallery reveal">
+    <figure><img src="media/shot-music.jpg" alt="Music playing with waves in the notch" loading="lazy"><figcaption>Music with flowing waves</figcaption></figure>
+    <figure><img src="media/shot-open.jpg" alt="Open notch with player and calendar" loading="lazy"><figcaption>Open notch: player + calendar</figcaption></figure>
+    <figure><img src="media/shot-pair.jpg" alt="Bluetooth pairing with battery" loading="lazy"><figcaption>Pairing with battery</figcaption></figure>
+  </div>
+</div></section>
+
+<section id="themes" style="padding-top:20px"><div class="wrap">
+  <div class="center reveal"><div class="eyebrow">Make it yours</div><h2>Themes, colours &amp; <span class="grad">waves.</span></h2><p class="lead">Midnight, Glass, Aurora glow or pure OLED. Six accent colours or your own. Waves, bars or pulse for music.</p></div>
+  <div class="themes reveal">
+    <div class="th on" style="--n:#050508"><div class="sw" style="background:linear-gradient(150deg,#1b2160,#3a1663)"></div><b>Midnight</b></div>
+    <div class="th" style="--n:rgba(30,30,40,.55);--b:1px solid rgba(255,255,255,.2)"><div class="sw" style="background:linear-gradient(150deg,#2b5bd8,#c04a8a)"></div><b>Glass</b></div>
+    <div class="th" style="--n:#000;--g:0 0 22px #7c9cff"><div class="sw" style="background:linear-gradient(150deg,#101433,#1d0f33)"></div><b>Aurora glow</b></div>
+    <div class="th" style="--n:#000"><div class="sw" style="background:#000;border:1px solid #222"></div><b>Pure OLED</b></div>
+  </div>
+</div></section>
+
+<section id="install" style="padding-top:20px"><div class="wrap">
+  <div class="center reveal"><div class="eyebrow">Install</div><h2>Ready in a minute.</h2></div>
+  <div class="steps">
+    <div class="step reveal"><h3>Download</h3><p>Get <b>SentraNotch.dmg</b> and drag <b>Sentra Notch</b> into Applications.</p></div>
+    <div class="step reveal"><h3>Open it once</h3><p>Right-click the app → <b>Open</b> (it's a free indie app, not notarized yet). Or run:<span class="code">xattr -dr com.apple.quarantine "/Applications/Sentra Notch.app"</span></p></div>
+    <div class="step reveal"><h3>Hover the notch</h3><p>That's it. Click ✨ in the menu bar for settings. Updates arrive inside the app — <b>Settings → About → Check for Updates</b>.</p></div>
+  </div>
+</div></section>
+
+<section id="faq" style="padding-top:20px"><div class="wrap">
+  <div class="center reveal"><div class="eyebrow">FAQ</div><h2>Questions, answered</h2></div>
+  <div class="faq">
+    <details class="reveal"><summary>Is Sentra Notch free?</summary><p>Yes — completely free and open source under the MIT License.</p></details>
+    <details class="reveal"><summary>Does it work without a notch?</summary><p>Yes. On external displays and Macs without a notch it draws a sleek virtual notch at the top of the screen.</p></details>
+    <details class="reveal"><summary>Which music apps work?</summary><p>Anything that shows in Control Centre: Apple Music, Spotify, YouTube and other sites in your browser, podcasts and more.</p></details>
+    <details class="reveal"><summary>Which permissions does it need?</summary><p>None to start. Calendar, Camera (mirror) and Accessibility (to replace Apple's volume pop-up) are optional and only asked when you turn those features on.</p></details>
+    <details class="reveal"><summary>How do updates work?</summary><p>Sentra Notch checks once a day. Every update is cryptographically signed and verified before it installs.</p></details>
+    <details class="reveal"><summary>Is it related to Boring Notch?</summary><p>Sentra Notch is inspired by the wonderful open-source Boring Notch, but it's an independent app written from scratch by Bubbles Aro, with new features like Bluetooth pairing animations.</p></details>
+  </div>
+</div></section>
+
+<section style="padding-top:10px"><div class="wrap"><div class="cta reveal">
+  <img src="icon-512.png" alt="" style="width:110px;margin:0 auto 18px;filter:drop-shadow(0 20px 40px rgba(124,156,255,.45))">
+  <h2>Give your notch <span class="grad">a brain.</span></h2>
+  <p class="lead" style="margin-inline:auto">Free download. No account. No tracking.</p>
+  <div class="ctas"><a class="btn btn-p" href="https://github.com/AbhiramUpadrashta/SentraNotch/releases/latest/download/SentraNotch.dmg">Download Sentra Notch</a><a class="btn btn-g" href="https://github.com/AbhiramUpadrashta/SentraNotch">Source on GitHub</a></div>
+</div></div></section>
+
+<footer><div class="wrap">
+  <div><a class="pby" href="https://bubbles.foo.ng/"><img src="https://bubbles.foo.ng/img/logo.svg" alt="">Powered by <b>&nbsp;Bubbles Aro</b></a>
+  <div style="margin-top:10px;font-size:13px">© 2026 Abhiram Upadrashta · MIT License · macOS is a trademark of Apple Inc.</div></div>
+  <div style="display:flex;gap:16px"><a href="https://github.com/AbhiramUpadrashta/SentraNotch">GitHub</a><a href="mailto:abhi@bubbles.foo.ng">Contact</a></div>
+</div></footer>
+
+<script src="demo.js"></script>
+</body>
+</html>
