@@ -65,7 +65,7 @@ h1{font-size:clamp(42px,7.4vw,86px);line-height:1.02;letter-spacing:-.05em;font-
 .notch::before,.notch::after{content:"";position:absolute;top:0;width:10px;height:10px;background:radial-gradient(circle at 0 100%,transparent 9.5px,#000 10px)}
 .notch.open{border-radius:0 0 30px 30px}
 .n-row{position:absolute;inset:0 0 auto 0;height:32px;display:flex;align-items:center;justify-content:space-between;padding:0 10px}
-.n-art{width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,var(--pink),#7a2bff);flex:none;transition:all .5s}
+.n-art{width:22px;height:22px;border-radius:6px;background:radial-gradient(circle at 30% 28%,#ffd3e4 0 9%,transparent 10%),radial-gradient(circle at 70% 70%,#5fd9b6 0 16%,transparent 17%),radial-gradient(120% 120% at 0 0,#ff5ea8,#7a2bff 55%,#2b2f8f);box-shadow:0 0 0 .5px rgba(255,255,255,.15);flex:none;transition:all .5s}
 .n-bottom{position:absolute;left:0;right:0;top:32px;padding:4px 16px;text-align:center;font-size:12.5px;font-weight:600;opacity:0;transition:opacity .35s .15s}
 .show .n-bottom{opacity:1}
 .n-sub{color:#aab;font-weight:500;margin-left:6px}
@@ -77,13 +77,13 @@ h1{font-size:clamp(42px,7.4vw,86px);line-height:1.02;letter-spacing:-.05em;font-
 .ring{width:22px;height:22px}
 .n-open{position:absolute;inset:36px 18px 14px;display:flex;gap:16px;opacity:0;transition:opacity .3s .2s;text-align:left}
 .open .n-open{opacity:1}
-.big-art{width:94px;height:94px;border-radius:16px;background:linear-gradient(135deg,var(--pink),#7a2bff 60%,var(--blue));flex:none;box-shadow:0 10px 40px -6px rgba(255,94,168,.7);position:relative}
-.big-art::after{content:"♪";position:absolute;inset:0;display:grid;place-items:center;font-size:34px;opacity:.8}
+.big-art{width:94px;height:94px;border-radius:16px;background:radial-gradient(circle at 30% 28%,#ffd3e4 0 9%,transparent 10%),radial-gradient(circle at 70% 70%,#5fd9b6 0 16%,transparent 17%),radial-gradient(120% 120% at 0 0,#ff5ea8,#7a2bff 55%,#2b2f8f);flex:none;box-shadow:0 10px 40px -6px rgba(255,94,168,.7);position:relative}
+.big-art::after{content:"";position:absolute;inset:0;border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.18),transparent 45%)}
 .pl h4{font-size:15px}.pl p{font-size:12.5px;color:var(--pink)}
 .scr{height:4px;background:rgba(255,255,255,.15);border-radius:9px;margin:10px 0 4px;position:relative}
 .scr i{position:absolute;inset:0 auto 0 0;width:38%;background:var(--pink);border-radius:9px;animation:prog 12s linear infinite}
 @keyframes prog{from{width:18%}to{width:64%}}
-.ctl{display:flex;gap:18px;justify-content:center;font-size:16px;margin-top:8px;opacity:.95}
+.ctl{display:flex;gap:22px;justify-content:center;align-items:center;margin-top:8px}
 .cal{width:170px;border-left:1px solid rgba(255,255,255,.08);padding-left:14px;font-size:11.5px}
 .cal b{display:block;font-size:12px;margin-bottom:6px;color:var(--blue)}
 .ev{display:flex;gap:7px;margin-bottom:6px}.ev i{width:3px;border-radius:2px;flex:none}
@@ -201,9 +201,9 @@ footer .wrap{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;
     <h2>Devices that <span class="grad">say hello.</span></h2>
     <p class="lead">Turn on your Magic Mouse or pop open your AirPods — the notch spins its icon for two seconds, then shows exactly how much battery is left.</p>
     <ul class="bul">
-      <li><span class="d">🖱</span><span><b>Mice, keyboards &amp; trackpads</b> — battery read straight from the device, with a charging bolt when plugged in.</span></li>
-      <li><span class="d">🎧</span><span><b>AirPods, Beats &amp; headphones</b> — left, right and case levels.</span></li>
-      <li><span class="d">🎮</span><span><b>Speakers &amp; game controllers</b> — the right icon for every device, and a quiet note when it disconnects.</span></li>
+      <li><span class="d">●</span><span><b>Mice, keyboards &amp; trackpads</b> — battery read straight from the device, with a charging bolt when plugged in.</span></li>
+      <li><span class="d">●</span><span><b>AirPods, Beats &amp; headphones</b> — left, right and case levels.</span></li>
+      <li><span class="d">●</span><span><b>Speakers &amp; game controllers</b> — the right icon for every device, and a quiet note when it disconnects.</span></li>
     </ul>
   </div>
   <div class="reveal"><div class="mac"><div class="wall" style="height:300px"><div class="menubar"><div class="r"><span id="clock2"></span></div></div><div class="notch" id="pairNotch"></div></div></div></div>
