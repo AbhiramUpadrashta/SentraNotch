@@ -31,6 +31,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ n: Notification) {
         Prefs.register()
+        if Installer.moveToApplicationsIfNeeded() { return }
         NotchController.shared.start()
         MusicModel.shared.start()
         SystemHUD.shared.start()

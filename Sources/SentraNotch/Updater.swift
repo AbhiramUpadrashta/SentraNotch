@@ -105,7 +105,7 @@ final class Updater {
         _ = run("/usr/bin/xattr", ["-dr", "com.apple.quarantine", app.path])
         // Where to install: the app's real place. If macOS is running us from a quarantine copy
         // (App Translocation) or from the disk image, install into /Applications instead.
-        var dest = Bundle.main.bundlePath
+        var dest = Installer.originalURL(for: Bundle.main.bundleURL).path
         if dest.contains("/AppTranslocation/") || dest.hasPrefix("/Volumes/") || !dest.hasSuffix(".app") {
             dest = "/Applications/Sentra Notch.app"
         }
