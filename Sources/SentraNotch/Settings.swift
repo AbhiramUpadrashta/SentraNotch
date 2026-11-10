@@ -75,7 +75,7 @@ struct SettingsView: View {
     }
 }
 
-private func rebuild() { NotchController.shared.refreshSettings() }
+@MainActor private func rebuild() { NotchController.shared.refreshSettings() }
 
 struct GeneralPage: View {
     @AppStorage(Prefs.showMenuBarIcon) var menuBar = true
