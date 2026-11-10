@@ -103,6 +103,11 @@ struct GeneralPage: View {
             Toggle("Show menu bar icon", isOn: $menuBar)
             Toggle("Play the hello animation on start", isOn: $hello)
             Toggle("Haptic feedback", isOn: $haptics)
+            HStack {
+                Button("Restart Sentra Notch") { (NSApp.delegate as? AppDelegate)?.restart() }
+                Spacer()
+                Button("Quit Sentra Notch", role: .destructive) { NSApp.terminate(nil) }.keyboardShortcut("q")
+            }
         }
         Section("Displays") {
             Toggle("Show on all displays", isOn: $allDisplays).onChange(of: allDisplays) { _, _ in rebuild() }
@@ -359,6 +364,7 @@ struct AboutPage: View {
         Section("Updates") {
             Button("Check for Updates…") { Updater.shared.check(userInitiated: true) }
             Toggle("Check automatically every day", isOn: $auto)
+            Button("Quit Sentra Notch", role: .destructive) { NSApp.terminate(nil) }
             Text("Updates are signed and verified before they install.").font(.caption).foregroundStyle(.secondary)
         }
         Section {
