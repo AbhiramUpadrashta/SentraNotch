@@ -185,6 +185,7 @@ struct MediaPage: View {
     @AppStorage(Prefs.mediaSource) var source = "auto"
     @AppStorage(Prefs.waveStyle) var waves = "waves"
     @AppStorage(Prefs.colorfulWaves) var colorful = true
+    @AppStorage(Prefs.dancer) var dancer = "both"
     @AppStorage(Prefs.tintPlayer) var tint = true
     @AppStorage(Prefs.sliderColor) var slider = "album"
     @AppStorage(Prefs.sneakPeek) var peek = true
@@ -204,10 +205,13 @@ struct MediaPage: View {
         }
         Section("Visualizer") {
             Picker("Animation", selection: $waves) {
-                Text("Waves").tag("waves"); Text("Bars").tag("bars"); Text("Pulse").tag("pulse"); Text("Off").tag("off")
+                Text("Bars").tag("bars"); Text("Waves").tag("waves"); Text("Pulse").tag("pulse"); Text("Dance").tag("dance"); Text("Off").tag("off")
             }.pickerStyle(.segmented)
+            if waves == "dance" {
+                Picker("Dancers", selection: $dancer) { Text("Boy").tag("boy"); Text("Girl").tag("girl"); Text("Both").tag("both") }.pickerStyle(.segmented)
+            }
             Toggle("Use album colours", isOn: $colorful)
-            HStack { Text("Preview"); Spacer(); MusicWaves(playing: true, color: .sentraAccent, bars: 5).frame(width: 60, height: 22) }
+            HStack { Text("Preview"); Spacer(); MusicWaves(playing: true, color: .sentraAccent, bars: 5).frame(width: waves == "dance" ? 70 : 40, height: waves == "dance" ? 34 : 22) }
         }
         Section("Player") {
             Toggle("Tint the player with album colours", isOn: $tint)
@@ -263,6 +267,7 @@ struct DevicesPage: View {
     @AppStorage(Prefs.batteryIndicator) var battery = true
     @AppStorage(Prefs.batteryPercent) var percent = true
     @AppStorage(Prefs.powerNotifications) var power = true
+    @AppStorage(Prefs.chargingAnimation) var chargeAnim = true
     @AppStorage(Prefs.lowBatteryAlert) var low = true
     @AppStorage(Prefs.downloads) var downloads = true
     @AppStorage(Prefs.notifications) var notifs = true
@@ -278,6 +283,7 @@ struct DevicesPage: View {
             Toggle("Battery in the open notch", isOn: $battery)
             Toggle("Show percentage", isOn: $percent).disabled(!battery)
             Toggle("Plugged in / unplugged / full", isOn: $power)
+            Toggle("Charging animation (filling battery)", isOn: $chargeAnim)
             Toggle("Low battery warnings (20%, 10%, 5%)", isOn: $low)
         }
         Section("Notifications & alarms (new in Sentra)") {
@@ -366,7 +372,7 @@ struct AboutPage: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Sentra Notch").font(.title2.bold())
                     Text("Version \(Updater.shared.currentVersion)").foregroundStyle(.secondary)
-                    Text("Powered by Bubbles Aro · MIT License").font(.caption).foregroundStyle(.secondary)
+                    Text("Powered by Bubbles Aro").font(.caption).foregroundStyle(.secondary)
                 }
             }
         }
@@ -378,10 +384,7 @@ struct AboutPage: View {
         }
         Section {
             Link("Website", destination: Links.website)
-            Link("Bubbles Aro", destination: Links.company)
-            Link("Source code", destination: Links.repo)
-            Link("Email us", destination: Links.mail)
-            Text("Inspired by the open-source Boring Notch. Sentra Notch is written from scratch.").font(.caption).foregroundStyle(.secondary)
+            Link("Support", destination: Links.mail)
         }
     }
 }

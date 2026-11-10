@@ -108,7 +108,8 @@ struct CompactMusicView: View {
                     .shadow(color: music.artworkColor.opacity(music.isPlaying ? 0.6 : 0), radius: 6)
                 Spacer()
                 MusicWaves(playing: music.isPlaying, color: music.artworkColor, bars: 5)
-                    .frame(width: 26, height: closed.height * 0.5)
+                    .frame(width: Prefs.string(Prefs.waveStyle) == "dance" ? (Prefs.string(Prefs.dancer) == "both" ? 40 : 22) : 24,
+                           height: Prefs.string(Prefs.waveStyle) == "dance" ? closed.height - 4 : closed.height * 0.5)
             }
             .frame(height: closed.height)
             if music.showsLyricLine {
@@ -142,56 +143,6 @@ struct ArtworkView: View {
         .clipShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
         .id(music.title)
         .transition(.scale.combined(with: .opacity))
-    }
-}
-
-// MARK: - Waves (animated music visualizer)
-
-struct MusicWaves: View {
-    var playing: Bool
-    var color: Color
-    var bars: Int = 4
-    @AppStorage(Prefs.waveStyle) private var style = "waves"
-    @AppStorage(Prefs.colorfulWaves) private var colorful = true
-
-    var body: some View {
-        let tint = colorful ? color : .white
-        TimelineView(.animation(minimumInterval: 1 / 60, paused: !playing)) { tl in
-            let t = tl.date.timeIntervalSinceReferenceDate
-            Canvas { ctx, size in
-                switch style {
-                case "bars":
-                    let w = size.width / CGFloat(bars * 2 - 1)
-                    for i in 0..<bars {
-                        let phase = Double(i) * 1.7
-                        let v = playing ? 0.25 + 0.75 * abs(sin(t * (3.2 + Double(i) * 0.9) + phase) * cos(t * 1.3 + phase)) : 0.18
-                        let h = size.height * v
-                        let rect = CGRect(x: CGFloat(i) * w * 2, y: (size.height - h) / 2, width: w, height: h)
-                        ctx.fill(Path(roundedRect: rect, cornerRadius: w / 2), with: .color(tint))
-                    }
-                case "pulse":
-                    let v = playing ? 0.55 + 0.45 * abs(sin(t * 3.4)) : 0.4
-                    let r = min(size.width, size.height) / 2 * v
-                    ctx.fill(Path(ellipseIn: CGRect(x: size.width / 2 - r, y: size.height / 2 - r, width: r * 2, height: r * 2)), with: .color(tint))
-                    ctx.stroke(Path(ellipseIn: CGRect(x: size.width / 2 - r * 1.5, y: size.height / 2 - r * 1.5, width: r * 3, height: r * 3)),
-                               with: .color(tint.opacity(0.35)), lineWidth: 1)
-                default: // flowing sine waves
-                    for layer in 0..<3 {
-                        var p = Path()
-                        let amp = size.height / 2 * (playing ? (0.85 - Double(layer) * 0.22) * (0.6 + 0.4 * abs(sin(t * 1.7 + Double(layer)))) : 0.08)
-                        let speed = 4.0 + Double(layer) * 1.3
-                        for x in stride(from: 0, through: size.width, by: 1) {
-                            let rel = x / size.width
-                            let env = sin(rel * .pi)                      // taper at both ends
-                            let y = size.height / 2 + amp * env * sin(rel * .pi * (2.5 + Double(layer)) - t * speed)
-                            if x == 0 { p.move(to: CGPoint(x: x, y: y)) } else { p.addLine(to: CGPoint(x: x, y: y)) }
-                        }
-                        ctx.stroke(p, with: .color(tint.opacity(1 - Double(layer) * 0.3)), lineWidth: 1.8 - CGFloat(layer) * 0.4)
-                    }
-                }
-            }
-        }
-        .opacity(style == "off" ? 0 : 1)
     }
 }
 
@@ -348,9 +299,10 @@ struct PowerPeek: View {
         SidesLayout(closed: closed) {
             Text(label).font(.system(size: 12, weight: .semibold)).foregroundStyle(color)
         } right: {
-            HStack(spacing: 4) {
+            HStack(spacing: 5) {
                 Text("\(power.level)%").font(.system(size: 12, weight: .semibold, design: .rounded)).monospacedDigit()
-                BatteryIcon(level: power.level, charging: power.onAC, color: color)
+                if Prefs.bool(Prefs.chargingAnimation), case .pluggedIn = event { ChargingBattery(level: power.level).frame(width: 30, height: 14) }
+                else { BatteryIcon(level: power.level, charging: power.onAC, color: color) }
             }
         } bottom: { EmptyView() }
     }

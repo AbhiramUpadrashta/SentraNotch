@@ -44,6 +44,8 @@ enum Prefs {
     static let mediaSource = "mediaSource"              // auto | music | spotify
     static let waveStyle = "waveStyle"                  // waves | bars | pulse | off
     static let colorfulWaves = "colorfulWaves"
+    static let dancer = "dancer"                        // boy | girl | both (when waveStyle == "dance")
+    static let chargingAnimation = "chargingAnimation"
     static let tintPlayer = "tintPlayer"
     static let sliderColor = "sliderColor"              // white | album | accent
     static let sneakPeek = "sneakPeek"
@@ -102,7 +104,7 @@ enum Prefs {
         gestures: true, closeGesture: true, gestureSensitivity: 0.5, helloAnimation: true, autoCheckUpdates: true,
         theme: "midnight", accent: "#7C9CFF", shadow: true, glow: true, cornerScaling: true, idleFace: true,
         tileLabels: false, showMirror: true, mirrorCircle: false, showCalendar: true,
-        mediaSource: "auto", waveStyle: "bars", colorfulWaves: true, tintPlayer: true, sliderColor: "album",
+        mediaSource: "auto", waveStyle: "bars", colorfulWaves: true, dancer: "both", chargingAnimation: true, tintPlayer: true, sliderColor: "album",
         sneakPeek: true, sneakPeekStyle: "standard", sneakPeekSeconds: 3.5, showShuffleRepeat: true, lyrics: false, lyricsClosed: true,
         controlSlots: "shuffle,previous,play,next,repeat", hideWhenPaused: false,
         hudReplace: false, hudInline: false, hudGradient: true, hudAccent: true, hudPercent: true, hudInOpenNotch: true,

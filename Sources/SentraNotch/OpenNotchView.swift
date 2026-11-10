@@ -97,7 +97,7 @@ struct HomeView: View {
     var body: some View {
         HStack(spacing: 14) {
             if music.hasMedia { PlayerView() } else { NothingPlaying() }
-            if calendar { CalendarPanel().frame(width: 200) }
+            if calendar { CalendarPanel().frame(width: 168) }
             if model.cameraOn { MirrorPanel().transition(.scale.combined(with: .opacity)) }
         }
     }
@@ -106,7 +106,7 @@ struct HomeView: View {
 struct NothingPlaying: View {
     var body: some View {
         HStack(spacing: 12) {
-            RoundedRectangle(cornerRadius: 14).fill(.white.opacity(0.06)).frame(width: 90, height: 90)
+            RoundedRectangle(cornerRadius: 13).fill(.white.opacity(0.06)).frame(width: 76, height: 76)
                 .overlay(Image(systemName: "music.note").font(.system(size: 30)).foregroundStyle(.white.opacity(0.3)))
             VStack(alignment: .leading, spacing: 4) {
                 Text("Nothing playing").font(.system(size: 14, weight: .semibold))
@@ -130,9 +130,9 @@ struct PlayerView: View {
         HStack(spacing: 14) {
             ZStack(alignment: .bottomTrailing) {
                 if glow, let a = music.artwork {
-                    Image(nsImage: a).resizable().scaledToFill().frame(width: 92, height: 92).blur(radius: 22).opacity(music.isPlaying ? 0.8 : 0.35)
+                    Image(nsImage: a).resizable().scaledToFill().frame(width: 76, height: 76).blur(radius: 20).opacity(music.isPlaying ? 0.8 : 0.35)
                 }
-                ArtworkView(size: 92, radius: 14)
+                ArtworkView(size: 76, radius: 13)
                     .scaleEffect(music.isPlaying ? 1 : 0.9)
                     .animation(.spring(response: 0.4, dampingFraction: 0.6), value: music.isPlaying)
                     .onTapGesture { music.openPlayerApp() }
@@ -225,70 +225,64 @@ struct CalendarPanel: View {
     @AppStorage(Prefs.fullEventTitles) private var fullTitles = false
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            WeekStrip()
-            if !cal.eventsAllowed {
-                Button("Allow Calendar access") { Task { await cal.requestAccess() } }
-                    .font(.system(size: 11)).buttonStyle(.borderless).foregroundStyle(Color.sentraAccent)
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text(cal.day.formatted(.dateTime.day())).font(.system(size: 22, weight: .bold, design: .rounded)).foregroundStyle(Color.sentraAccent)
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(cal.day.formatted(.dateTime.weekday(.wide))).font(.system(size: 11, weight: .semibold))
+                    Text(cal.day.formatted(.dateTime.month(.wide))).font(.system(size: 9.5)).foregroundStyle(.white.opacity(0.5))
+                }
                 Spacer()
+                dayButton("chevron.left", -1)
+                dayButton("chevron.right", 1)
+            }
+            if !cal.eventsAllowed {
+                Button("Show my calendar") { Task { await cal.requestAccess() } }
+                    .font(.system(size: 11, weight: .medium)).buttonStyle(.borderless).foregroundStyle(Color.sentraAccent)
+                Spacer(minLength: 0)
             } else if cal.items.isEmpty {
-                VStack(spacing: 4) {
-                    Image(systemName: "calendar.badge.checkmark").font(.system(size: 18)).foregroundStyle(.white.opacity(0.4))
-                    Text("No events").font(.system(size: 11)).foregroundStyle(.white.opacity(0.5))
-                }.frame(maxWidth: .infinity, maxHeight: .infinity)
+                Spacer(minLength: 0)
+                Label("Nothing planned", systemImage: "sparkles").font(.system(size: 11)).foregroundStyle(.white.opacity(0.55))
+                Spacer(minLength: 0)
             } else {
                 ScrollView(showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: 5) {
-                        ForEach(cal.items) { it in row(it) }
-                    }
+                    VStack(alignment: .leading, spacing: 4) { ForEach(cal.items) { row($0) } }
                 }
             }
         }
     }
+
+    private func dayButton(_ icon: String, _ delta: Int) -> some View {
+        Button { cal.select(Calendar.current.date(byAdding: .day, value: delta, to: cal.day)!) } label: {
+            Image(systemName: icon).font(.system(size: 9, weight: .bold)).frame(width: 18, height: 18)
+                .background(Circle().fill(.white.opacity(0.08)))
+        }.buttonStyle(.plain).foregroundStyle(.white.opacity(0.7))
+    }
+
     private func row(_ it: AgendaItem) -> some View {
-        HStack(alignment: .top, spacing: 6) {
+        let now = Date()
+        let live = !it.isReminder && (it.start ?? .distantFuture) <= now && (it.end ?? .distantPast) > now
+        return HStack(spacing: 6) {
             if it.isReminder {
                 Button { cal.complete(it) } label: {
-                    Image(systemName: it.done ? "checkmark.circle.fill" : "circle").font(.system(size: 11)).foregroundStyle(it.color)
+                    Image(systemName: it.done ? "checkmark.circle.fill" : "circle").font(.system(size: 10)).foregroundStyle(it.color)
                 }.buttonStyle(.plain)
             } else {
-                Capsule().fill(it.color).frame(width: 3, height: 26)
+                Circle().fill(it.color).frame(width: 6, height: 6)
             }
-            VStack(alignment: .leading, spacing: 1) {
-                Text(it.title).font(.system(size: 11, weight: .semibold)).lineLimit(fullTitles ? 3 : 1)
-                Text(it.allDay ? (it.isReminder ? "Reminder" : "All day") : timeRange(it)).font(.system(size: 9.5)).foregroundStyle(.white.opacity(0.5))
-            }
-            Spacer(minLength: 0)
+            Text(it.title).font(.system(size: 10.5, weight: .medium)).lineLimit(fullTitles ? 2 : 1)
+            Spacer(minLength: 2)
             if let u = it.url {
-                Button { NSWorkspace.shared.open(u) } label: { Image(systemName: "video.fill").font(.system(size: 10)) }.buttonStyle(.plain).foregroundStyle(Color.sentraAccent)
+                Button { NSWorkspace.shared.open(u) } label: { Image(systemName: "video.fill").font(.system(size: 8.5)) }
+                    .buttonStyle(.plain).foregroundStyle(Color.sentraAccent)
             }
+            Text(it.allDay ? (it.isReminder ? "To do" : "All day") : (it.start.map { $0.formatted(date: .omitted, time: .shortened) } ?? ""))
+                .font(.system(size: 9, weight: .semibold, design: .rounded)).monospacedDigit()
+                .padding(.horizontal, 5).padding(.vertical, 1.5)
+                .background(Capsule().fill(live ? it.color.opacity(0.35) : .white.opacity(0.08)))
+                .foregroundStyle(.white.opacity(0.85))
         }
-    }
-    private func timeRange(_ it: AgendaItem) -> String {
-        let f = DateFormatter(); f.timeStyle = .short
-        guard let s = it.start else { return "" }
-        return it.end.map { "\(f.string(from: s)) – \(f.string(from: $0))" } ?? f.string(from: s)
-    }
-}
-
-struct WeekStrip: View {
-    @ObservedObject var cal = CalendarModel.shared
-    var body: some View {
-        let today = Calendar.current.startOfDay(for: Date())
-        HStack(spacing: 2) {
-            ForEach(-2..<5, id: \.self) { off in
-                let d = Calendar.current.date(byAdding: .day, value: off, to: today)!
-                let sel = Calendar.current.isDate(d, inSameDayAs: cal.day)
-                Button { cal.select(d) } label: {
-                    VStack(spacing: 1) {
-                        Text(d.formatted(.dateTime.weekday(.narrow))).font(.system(size: 8.5, weight: .medium)).foregroundStyle(.white.opacity(0.5))
-                        Text(d.formatted(.dateTime.day())).font(.system(size: 11, weight: .bold, design: .rounded))
-                            .foregroundStyle(off == 0 ? Color.sentraAccent : .white)
-                    }
-                    .frame(width: 25, height: 30)
-                    .background(RoundedRectangle(cornerRadius: 7).fill(sel ? Color.white.opacity(0.12) : .clear))
-                }.buttonStyle(.plain)
-            }
-        }
+        .padding(.vertical, 3).padding(.horizontal, 6)
+        .background(RoundedRectangle(cornerRadius: 7).fill(live ? it.color.opacity(0.12) : .white.opacity(0.03)))
     }
 }
 
@@ -307,6 +301,6 @@ struct MirrorPanel: View {
                 }.buttonStyle(.plain)
             }
         }
-        .frame(width: 110, height: 110)
+        .frame(width: 96, height: 96)
     }
 }

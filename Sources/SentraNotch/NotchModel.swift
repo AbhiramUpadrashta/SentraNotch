@@ -67,7 +67,7 @@ final class NotchModel: ObservableObject {
     /// Size of the physical notch (or the fake one on displays without a notch).
     @Published var closedSize = CGSize(width: 200, height: 32)
 
-    let openSize = CGSize(width: 640, height: 196)
+    let openSize = CGSize(width: 560, height: 168)
 
     private var peekTimer: Timer?
 
@@ -79,7 +79,7 @@ final class NotchModel: ObservableObject {
             if Prefs.bool(Prefs.hudInline) { s.width += 250 } else { s.height += 30; s.width += 120 }
         case .device: s.width += 260; s.height += 26
         case .notification: s.width += 300; s.height += 42
-        case .power: s.width += 210
+        case .power: s.width += Prefs.bool(Prefs.chargingAnimation) ? 230 : 210
         case .track:
             if Prefs.string(Prefs.sneakPeekStyle) == "inline" { s.width += 220 } else { s.height += 34; s.width += 60 }
         case .download: s.width += 140
